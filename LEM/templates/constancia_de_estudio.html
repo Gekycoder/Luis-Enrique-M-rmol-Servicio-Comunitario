@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Constancia de Estudio</title>
+    
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            padding: 0;
+            line-height: 1.3;
+        }
+
+        .constancia {
+            box-sizing: border-box;
+            width: 100%;
+            height: 49%; /* Ligeramente menos del 50% para compensar la línea divisoria */
+            padding: 15px;
+        }
+
+        .header {
+            text-align: center;
+            font-size: 6.5px;
+            margin: 0; /* Elimina cualquier margen */
+            padding: 0; /* Elimina cualquier padding */
+        }
+
+        h1 {
+            margin: 0; /* Elimina cualquier margen */
+            padding: 0; /* Elimina cualquier padding */
+        }
+
+        .title {
+            text-decoration: underline;
+			text-align: center;
+			font-size: 13px;
+			line-height: 2.5;
+
+        }
+
+        .content {
+            text-align: justify;
+			margin-bottom: 20px;
+			font-size: 13px;
+        }
+
+		.content2 {
+            margin-bottom: 20px;
+			text-align: center;
+			font-size: 13px;
+        }
+
+        .signature {
+            margin-top: 50px;
+            text-align: center;
+			line-height: 0.4;
+            font-size: 13px;
+        }
+
+		.subrayado {
+			text-decoration: underline;
+			}
+
+		.footer {
+            bottom: 40px;
+            width: 100%;
+            text-align: center;
+			font-size: 11px;
+            padding-top: 10px;
+        }
+
+        .line-divider {
+            width: 100%;
+            height: 2px;
+            background-color: #000;
+        }
+
+    </style>
+    
+</head>
+<body>
+    <!-- Bloque para la parte superior -->
+    <div class="constancia">
+        <div class="header">
+            <!-- Contenido del encabezado -->
+            <h1>REPÚBLICA BOLIVARIANA DE VENEZUELA</h1>
+			<h1>MINISTERIO DEL PODER POPULAR PARA LA EDUCACIÓN</h1>
+			<h1>COMPLEJO EDUCATIVO "LUIS ENRIQUE MÁRMOL"</h1>
+			<h1>MINISTERIO DEL PODER POPULAR PARA LA EDUCACIÓN</h1>
+			<h1>CODIGO DEA: ODO2390105</h1>
+			<h1>23 DE ENERO - CARACAS</h1>
+            <!-- Más elementos del encabezado -->
+        </div>
+        <h2 class="title">CONSTANCIA DE ESTUDIO</h2>
+        <div class="content">
+            <!-- Contenido de la constancia -->
+            <p>Quien suscribe Lcdo. {{ director_nombre }}, Director del COMPLEJO EDUCATIVO "LUIS ENRIQUE MÁRMOL", Por medio
+                de la presente hace constar que el (la) estudiante: <span class="subrayado">{{ estudiante_nombre}}</span> Portador (a) de la C.I. 
+                / C.E: <span class="subrayado">{{ estudiante_ci }}</span> cursa el grado: 
+                <span class="subrayado">{{estudiante_grado}}, sección "{{estudiante_seccion}}"</span> Grupo de Educación Inicial en esta
+                Institución Educativa durante el Año Escolar: 2024 / II, en el horario comprendido entre las 7:00 a.m y las 12:30 p.m.</p>
+
+				<p class="content2">Constancia que se expide a solicitud de la parte interesada<br>
+					En Caracas, a los <span class="subrayado">{{ dia }} día(s)</span> del mes de 
+					<span class="subrayado">{{ mes }}</span> de: <span class="subrayado">{{ año }}</span></p>
+        </div>
+        <div class="signature">
+            <!-- Firma y otros detalles -->
+            <p>_____________________________</p>
+            <p>Lcdo. {{ director_nombre }}</p>
+            <p>Director.</p>
+        </div>
+        <div class="footer">
+            <!-- Pie de página -->
+            <p>Parroquia 23 de Enero, Calle Real de La Cañada, entre los bloques 19, 20 y 21. A 50 Mts. Del SAIME y la Coordinadora Simón Bolívar.
+                Teléfono: (0212) 8505300 Correo electrónico: e.b.n.luis.enrique.marmol@gmail.com </p>
+
+        </div>
+    </div>
+
+    <!-- División -->
+    <div class="line-divider"></div>
+
+    <!-- Bloque duplicado para la parte inferior -->
+    <div class="constancia">
+        <div class="header">
+            <!-- Contenido del encabezado -->
+            <h1>REPÚBLICA BOLIVARIANA DE VENEZUELA</h1>
+			<h1>MINISTERIO DEL PODER POPULAR PARA LA EDUCACIÓN</h1>
+			<h1>COMPLEJO EDUCATIVO "LUIS ENRIQUE MÁRMOL"</h1>
+			<h1>MINISTERIO DEL PODER POPULAR PARA LA EDUCACIÓN</h1>
+			<h1>CODIGO DEA: ODO2390105</h1>
+			<h1>23 DE ENERO - CARACAS</h1>
+            <!-- Más elementos del encabezado -->
+        </div>
+        <h2 class="title">CONSTANCIA DE ESTUDIO</h2>
+        <div class="content">
+            <!-- Contenido de la constancia -->
+            <p>Quien suscribe Lcdo. {{ director_nombre }}, Director del COMPLEJO EDUCATIVO "LUIS ENRIQUE MÁRMOL", Por medio
+                de la presente hace constar que el (la) estudiante: <span class="subrayado">{{ estudiante_nombre }}</span> Portador (a) de la C.I. 
+                / C.E: <span class="subrayado">{{ estudiante_ci }}</span> cursa el grado: 
+                <span class="subrayado">{{estudiante_grado}}, sección "{{estudiante_seccion}}"</span> Grupo de Educación Inicial en esta
+                Institución Educativa durante el Año Escolar: 2024 / II, en el horario comprendido entre las 7:00 a.m y las 12:30 p.m.</p>
+
+				<p class="content2">Constancia que se expide a solicitud de la parte interesada<br>
+					En Caracas, a los <span class="subrayado">{{ dia }} día(s)</span> del mes de 
+					<span class="subrayado">{{ mes }}</span> de: <span class="subrayado">{{ año }}</span></p>
+        </div>
+        <div class="signature">
+            <!-- Firma y otros detalles -->
+            <p>_____________________________</p>
+            <p>Lcdo. {{ director_nombre }}</p>
+            <p>Director.</p>
+        </div>
+        <div class="footer">
+            <!-- Pie de página -->
+            <p>Parroquia 23 de Enero, Calle Real de La Cañada, entre los bloques 19, 20 y 21. A 50 Mts. Del SAIME y la Coordinadora Simón Bolívar.
+                Teléfono: (0212) 8505300 Correo electrónico: e.b.n.luis.enrique.marmol@gmail.com </p>
+        </div>
+    </div>
+</body>
+</html>
