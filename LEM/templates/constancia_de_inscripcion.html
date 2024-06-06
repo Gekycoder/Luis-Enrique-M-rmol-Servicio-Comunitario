@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Constancia de Estudio</title>
+    <title>Constancia de Inscripción</title>
     
     <style>
 
@@ -79,7 +79,7 @@
             font-size: 11px;
             padding: 10px 0;
             width: 100%;
-            margin-top: 40%; /* Esto empuja el footer hacia abajo */
+            margin-top: 30%; /* Esto empuja el footer hacia abajo */
             max-height: 90vh;
         }
 
@@ -99,14 +99,15 @@
 			<h1>23 DE ENERO - CARACAS</h1>
             <!-- Más elementos del encabezado -->
         </div>
-        <h2 class="title">CONSTANCIA DE ESTUDIO</h2>
+        <h2 class="title">CONSTANCIA DE INSCRIPCIÓN</h2>
         <div class="content">
             <!-- Contenido de la constancia -->
             <p>Quien suscribe Lcdo. {{ director_nombre }}, Director de la UNIDAD EDUCATIVA "LUIS ENRIQUE MÁRMOL", Por medio
                 de la presente hace constar que el (la) estudiante: <span class="subrayado">{{ estudiante_nombre}}</span> Portador (a) de la C.I. 
-                / C.E: <span class="subrayado">{{ estudiante_ci }}</span> cursa el grado:
-                <span class="subrayado">{{estudiante_grado}}, sección "{{estudiante_seccion}}"</span> Grupo de Educación Inicial en esta
-                Institución Educativa durante el Año Escolar: 2024 / II, en el horario comprendido entre las 7:00 a.m y las 12:30 p.m.</p>
+                / C.E: <span class="subrayado">{{ estudiante_ci }}</span> Ha sido inscrito para cursar el:
+                <span class="subrayado">{{estudiante_grado}} Grado, sección "{{estudiante_seccion}}"</span> de Educación Inicial en esta
+                Institución Educativa durante el Año Escolar: <span class="subrayado">{{ año }}</span>/ II, en el horario comprendido entre las 
+                7:00 a.m y las 12:30 p.m.</p>
 
 				<p class="content2">Constancia que se expide a solicitud de la parte interesada<br>
 					En Caracas, a los <span class="subrayado">{{ dia }} día(s)</span> del mes de 

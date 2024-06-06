@@ -1,28 +1,30 @@
-document.getElementById('loginForm').addEventListener('submit', function(event) {
-    event.preventDefault();  // Evita el comportamiento de envío predeterminado
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('loginForm');
+    const errorMessage = document.getElementById('error-message');
 
-    var formData = new FormData(this);
+    loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(loginForm);
 
-    fetch('/login/', {  // La URL que maneja el inicio de sesión
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if(data.success) {
-            console.log('Token recibido:', data.token); // Imprime el token en la consola
-            // Guarda el token JWT y redirige al usuario
-            localStorage.setItem('token', data.token);
-            window.location.href = data.redirect_url;
-        } else {
-            // Muestra un mensaje de error
-            document.getElementById('error-message').textContent = data.error;
-            document.getElementById('error-message').style.display = 'block';
-        }
-    })
-    .catch((error) => {
-        console.error('Error:', error);
-        document.getElementById('error-message').textContent = 'Ha ocurrido un error al iniciar sesión.';
-        document.getElementById('error-message').style.display = 'block';
+        fetch(loginForm.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect_url;
+            } else {
+                errorMessage.style.display = 'block';
+                errorMessage.textContent = data.error;
+            }
+        })
+        .catch(error => {
+            errorMessage.style.display = 'block';
+            errorMessage.textContent = 'Error al intentar iniciar sesión. Por favor, inténtelo de nuevo.';
+        });
     });
 });

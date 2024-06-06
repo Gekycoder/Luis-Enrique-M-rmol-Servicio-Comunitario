@@ -1,20 +1,30 @@
-from django.contrib import admin
 from django.urls import path
-from .views import sesion_exitosa, get_usuarios, logout_view
 from . import views  # Importa las vistas de tu aplicación
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-    
-)
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
-    path('login/', views.login_o_registro, name='login'),  # Cambiado para referenciar login_o_registro
+    path('login/', views.logear, name='login'),
     path('sesion-exitosa/', views.sesion_exitosa, name='sesion_exitosa'),
-    path('logout/', logout_view, name='logout'),
+    path('logout/', views.logout_view, name='logout'),
+    path('get-user-data/', views.get_user_data, name='get_user_data'),
     path('get-estudiantes/', views.get_estudiantes, name='get_estudiantes'),
     path('get-usuarios/', views.get_usuarios, name='get_usuarios'),
+    path('get-usuario/<int:user_id>/', views.get_usuario, name='get_usuario'),
+    path('agregar-usuario/', views.agregar_usuario, name='agregar_usuario'),
+    path('modificar-usuario/', views.modificar_usuario, name='modificar_usuario'),
+    path('eliminar-usuario/', views.eliminar_usuario, name='eliminar_usuario'),
+    path('change-profile-photo/', views.change_profile_photo, name='change-profile-photo'),
+    path('crear-tarea/', views.crear_tarea, name='crear_tarea'),
+    path('actualizar-tarea/<int:tarea_id>/',  views.actualizar_tarea, name='actualizar_tarea'),
+    path('eliminar-tarea/<int:tarea_id>/',  views.eliminar_tarea, name='eliminar_tarea'),
+    path('obtener-tareas/', views.obtener_tareas, name='obtener_tareas'),
     path('generar-constancia/<int:estudiante_id>/', views.vista_constancia, name='generar-constancia'),
+    path('generar-constancia-asistencia/<int:estudiante_id>/', views.vista_constancia_asistencia, name='generar-constancia-asistencia'),
+    path('generar-constancia-inscripcion/<int:estudiante_id>/', views.vista_constancia_inscripcion, name='generar-constancia-inscripcion'),
+    path('generar-constancia-retiro/<int:estudiante_id>/', views.vista_constancia_retiro, name='generar-constancia-retiro'),
+    path('generar-boletin-1er-momento-preescolar/<int:estudiante_id>/', views.generar_boletin_1er_momento_preescolar, name='generar_boletin_1er_momento_preescolar'),
+] 
 
-    
-]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

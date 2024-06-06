@@ -19,3 +19,9 @@ def decode_jwt_token(token):
         return "Signature expired. Please log in again."
     except jwt.InvalidTokenError:
         return "Invalid token. Please log in again."
+
+def get_user_token(request):
+    return request.session.get('user_token', None)
+
+def store_user_token(request, token):
+    request.session['user_token'] = token

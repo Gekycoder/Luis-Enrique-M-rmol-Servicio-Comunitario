@@ -5,13 +5,14 @@ from django.contrib.auth.hashers import make_password
 class Usuario(models.Model):
     nombres = models.CharField(max_length=255)
     apellidos = models.CharField(max_length=255)
-    cedula = models.CharField(max_length=45, unique=True)  # Asumiendo que la cédula es única y de longitud máxima 45
+    cedula = models.CharField(max_length=45, unique=True)
     usuario = models.CharField(max_length=150, unique=True)
     contrasena = models.CharField(max_length=128)
     correo = models.EmailField(unique=True)
     telefonos = models.CharField(max_length=255)
     direccion = models.TextField()
     rol = models.CharField(max_length=50)
+    profile_photo = models.CharField(max_length=255, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         # Es importante solo hashear la contraseña si ha sido modificada, o es una nueva
@@ -41,3 +42,14 @@ class Estudiante(models.Model):
 
     def __str__(self):
         return self.apellidos_nombres
+
+class Tarea(models.Model):
+    nombre = models.CharField(max_length=255)
+    descripcion = models.TextField()
+    fecha = models.DateField()
+    estado = models.CharField(max_length=20, choices=[('Pendiente', 'Pendiente'), ('Completada', 'Completada'), ('Cancelada', 'Cancelada')])
+    creado = models.DateTimeField(auto_now_add=True)
+    actualizado = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.nombre

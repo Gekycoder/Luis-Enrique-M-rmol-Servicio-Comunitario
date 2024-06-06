@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ni5@$$xm(dgofz!orhh$(+%m^15wxc*sj(!o_g@0*6v&y&y###'
+SECRET_KEY = 'django-insecure-%0!(b3j@soykh8yvy@hcx3d)w--kjbwe%7v$db0ir9g1vz37&('
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -65,7 +65,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'LEM.middleware.AuthenticationMiddleware',  # Asegúrate de incluir tu middleware personalizado aquí
 ]
+
 
 ROOT_URLCONF = 'LEM.urls'
 
@@ -154,3 +156,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 LOGIN_URL = 'login'
+
+
+# settings.py
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+

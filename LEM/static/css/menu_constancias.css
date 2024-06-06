@@ -1,0 +1,46 @@
+/* Estilos generales para los enlaces de la barra lateral */
+.sidebar-link {
+    display: block; /* Asegura que cada enlace ocupa su propia línea */
+    padding: 10px 20px; /* Ajusta el padding según necesidades visuales */
+    text-decoration: none; /* Elimina el subrayado de los enlaces */
+    color: black; /* Establece un color de texto */
+}
+
+/* Estilos específicos para los enlaces del submenú */
+.submenu-link {
+    display: block; /* Asegura que cada enlace de submenú ocupe su propia línea */
+    padding: 5px 20px; /* Ajusta el padding para los enlaces de submenú */
+    text-decoration: none;
+    color: grey; /* Color diferente para los submenús si lo deseas */
+    font-family: 'Poppins'; /* Establece la familia de fuentes */
+    font-weight: 400; /* Peso de la fuente */
+    font-size: 12.18px; /* Tamaño de la fuente */
+    margin-left: 1rem; /* Margen izquierdo */
+}
+
+/* Configuración de la visualización del submenú */
+.sidebar-submenu {
+    display: flex; /* Alineación horizontal de los enlaces */
+    flex-direction: column; /* Los enlaces se apilan verticalmente */
+    width: 100%; /* Asegura que el submenu use todo el ancho disponible */
+    box-sizing: border-box; /* Asegura que el padding no afecte el ancho total */
+    margin-left: 2rem;
+}
+
+/* Estilo para mostrar el submenú */
+.sidebar-submenu.show {
+    display: block; /* Se muestra cuando se hace clic */
+}
+
+/* Estilo para el icono dentro de los enlaces del submenú */
+.sidebar-submenu .material-symbols-outlined {
+    font-size: 20px; /* Tamaño del icono */
+    margin-right: 0px; /* Espacio entre el icono y el texto, reducido de 12px a 4px */
+    transition: all 0.3s ease; /* Transición suave para todas las propiedades */
+    margin-top: 0px;
+}
+
+/* Efecto hover para los iconos en los enlaces del submenú */
+.sidebar .sidebar-submenu a:hover span.material-symbols-outlined {
+    margin-right: 0px; /* Aumenta el margen derecho al pasar el mouse */
+}

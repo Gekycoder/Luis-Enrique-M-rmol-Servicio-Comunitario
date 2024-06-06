@@ -13,8 +13,8 @@
     <div class="container">
         <div class="forms-container">
             <div class="signin-signup">
-                <!-- Quitar el atributo action y agregar el id 'loginForm' -->
-                <form id="loginForm" class="sign-in-form">
+                <form id="loginForm" class="sign-in-form" method="post" action="{% url 'login' %}">
+                    {% csrf_token %}
                     <h2 class="title">Iniciar Sesión</h2>
                     <div class="input-field">
                         <i class="fas fa-user"></i>
@@ -24,7 +24,7 @@
                         <i class="fas fa-lock"></i>
                         <input type="password" placeholder="Contraseña" name="contrasena" required />
                     </div>
-                    <div id="error-message" style="display: none; color: red;"> <!-- Mensaje de error oculto por defecto -->
+                    <div id="error-message" style="display: none; color: red;">
                         <!-- El mensaje de error se insertará aquí -->
                     </div>
                     <input type="submit" value="Ingresar" class="btn solid" />
@@ -35,18 +35,16 @@
         <div class="panels-container">
             <div class="panel left-panel">
                 <div class="content">
-                    <img src="{% static 'images/logolem_inicio.png' %}" alt="LEM Icon" class="lem-icon"/>
+                    <img src="{% static 'images/logolem_inicio.png' %}">
                     <p>
                         Lorem ipsum, dolor sit amet consectetur adipisicing elit. Debitis,
                         ex ratione. Aliquid!
                     </p>
                 </div>
-                
             </div>
         </div>
     </div>
 
-    <!-- Incluir el archivo JavaScript al final del cuerpo del documento -->
     <script src="{% static 'js/inicio.js' %}"></script>
 </body>
 </html>

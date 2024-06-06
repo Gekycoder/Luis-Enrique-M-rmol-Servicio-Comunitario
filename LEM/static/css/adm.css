@@ -214,7 +214,7 @@ aside .sidebar a{
     height: 3.7rem;
     gap: 1rem;
     position: relative;
-    margin-left: 2rem;
+    margin-left: 0rem;
     padding-right: 30px;
     transition: all 0.3s ease;
 }
@@ -224,7 +224,7 @@ aside .sidebar a span{
     transition: all 0.3s ease;
 }
 
-aside .sidebar a:last-child{
+aside .sidebar #logout{
     position: absolute;
     bottom: 2rem;
     width: 100%;
@@ -393,6 +393,11 @@ main .new-users .user-list .user{
     color: var(--color-lem) /* el color que quieras aplicar al pasar el mouse */
 }
 
+.user-list .user {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
 
 main .recent-orders{
     margin-top: 1.3rem;
@@ -516,6 +521,8 @@ main .recent-orders a{
     transition: all 0.3s ease;
 }
 
+
+
 .right-section .user-profile:hover{
     box-shadow: none;
 }
@@ -579,6 +586,12 @@ main .recent-orders a{
     width: 100%;
 }
 
+.reminders .notification {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
 .right-section .reminders .notification .icon{
     padding: 0.6rem;
     color: var(--color-white);
@@ -613,6 +626,98 @@ main .recent-orders a{
     gap: 0.6rem;
 }
 
+/* MENU PLANIFICACION Y SUS OPCIONES */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1001;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+}
+
+@keyframes animatetop {
+    from {
+        top: -300px;
+        opacity: 0;
+    }
+    to {
+        top: 0;
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    padding: 2px 16px;
+    background-color: #5cb85c;
+    color: white;
+}
+
+.modal-body {
+    padding: 2px 16px;
+}
+
+.close-button {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.btn {
+    background-color: #5cb85c;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn:hover {
+    background-color: #4cae4c;
+}
+
+
+
+/* FIN MENU PLANIFICACION Y SUS OPCIONES */
+
+
 /* Estilo de AGREGAR USUARIO */
 
 main .user-widget {
@@ -636,7 +741,96 @@ main .user-widget {
     padding: 5px; /* Espaciado interno para cada celda */
     /* Agrega más estilos aquí si es necesario */
   }
-  
+
+.sidebar-link {
+    display: block;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: black;
+}
+
+.sidebar-link:hover {
+    background-color: #f0f0f0;
+}
+
+.active {
+    font-weight: bold;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Dos columnas iguales */
+    gap: 20px; /* Espacio entre las columnas */
+}
+
+.form-grid input,
+.form-grid button {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 100%; /* Asegurar que los inputs ocupen el 100% del espacio disponible */
+    box-sizing: border-box; /* Incluir el padding y el border en el tamaño total */
+}
+
+.form-grid button {
+    grid-column: 1 / -1; /* Hacer que el botón ocupe ambas columnas */
+    background-color: #7C8CA0;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.form-grid button:hover {
+    background-color: #1464c5;
+}
+
+.form-grid .form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-grid .form-group label {
+    margin-bottom: 5px;
+}
+
+.form-grid .form-group input,
+.form-grid .form-group textarea {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+/* Estilo para ocultar las flechas en los campos de número */
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Reaparecer flechas cuando el valor es mayor que 0 */
+input[type="number"]:not(:placeholder-shown)::-webkit-outer-spin-button,
+input[type="number"]:not(:placeholder-shown)::-webkit-inner-spin-button {
+    -webkit-appearance: inner-spin-button;
+}
+
+input[type="number"]:not(:placeholder-shown) {
+    -moz-appearance: initial;
+}
+
+
+
+
+
+
+
+
+
+
+
 
   
 /* Puedes añadir más estilos aquí */
