@@ -455,8 +455,10 @@ main .recent-orders a{
     -webkit-font-smoothing: antialiased;
 }
 
-.right-section{
+.right-section {
     margin-top: 1.4rem;
+    overflow-y: auto;
+    height: 34.5rem;
 }
 
 .right-section .nav{
@@ -1364,3 +1366,82 @@ main {
     background-color: #eee;
   }
    /*Fin de menú*/
+
+
+
+   .ver-notas i {
+    font-size: 18px;
+    color: #007bff;
+}
+
+.review-promotion i {
+    font-size: 18px;
+    color: red;
+    margin-left: 10px; /* Espacio entre el ícono del ojo y la campana */
+}
+
+#approvePromotionBtn, #denyPromotionBtn {
+    padding: 8px 16px;
+    margin: 10px;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+
+#approvePromotionBtn {
+    background-color: green;
+}
+
+#denyPromotionBtn {
+    background-color: red;
+}
+
+
+
+main .teacher-widget {
+    margin-top: 3.5rem;
+    background-color: var(--color-white);
+    border-radius: var(--card-border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 1rem;
+}
+
+
+.teacher-widget {
+    display: none; /* Oculto por defecto */
+    position: absolute;
+    top: 0.25rem;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    overflow: auto;
+    z-index: 10;
+    background-color: var(--color-white);
+    box-shadow: var(--box-shadow);
+    border-radius: var(--card-border-radius);
+    padding: 1rem;
+    height: 88vh;
+}
+
+
+.teacher-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.teacher-table th, .teacher-table td {
+    padding: 12px;
+    border: 1px solid #ddd;
+}
+
+.teacher-table th {
+    background-color: #f2f2f2;
+    text-align: left;
+}
+
+.teacher-table tbody tr:hover {
+    background-color: #f1f1f1;
+    cursor: pointer;
+}
+
+

@@ -1,10 +1,11 @@
 from django.http import JsonResponse
-from .models import Usuario, Estudiante, Tarea
+from .models import Usuario, Estudiante, Tarea, PromocionSolicitud
 from django.http import HttpResponse
 from django.contrib.auth.hashers import make_password, check_password
 from django.views.decorators.csrf import csrf_exempt
-from .utils import generate_jwt_token  # Asume que esta función está definida en utils.py
+# Asume que esta función está definida en utils.py
 from .constancias import constancia_estudio, constancia_asistencia, constancia_inscripcion, constancia_retiro
+from django.contrib.auth.decorators import login_required
 from .boletines import generar_boletin
 from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import render, redirect, get_object_or_404
@@ -14,8 +15,7 @@ from django.shortcuts import render
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.http import JsonResponse, HttpResponseBadRequest
-import logging
-import json
+import logging, json
 from django.conf import settings
 
 
@@ -73,12 +73,13 @@ def sesion_exitosa(request):
             'usuario_rol': user.rol,
             'profile_photo_url': f"{settings.MEDIA_URL}{user.profile_photo}" if user.profile_photo else None,
             'is_admin_or_director': user.rol in ['Administrador', 'Director'],
-            'is_docente': user.rol == 'Docente'
+            'is_docente': user.rol == 'Docente'  # Verifica si el usuario es docente
         }
 
         return render(request, 'sesion_exitosa.html', contexto)
     except Usuario.DoesNotExist:
         return redirect('login')
+
 
 
 @csrf_exempt
@@ -252,11 +253,24 @@ def get_usuario(request, user_id):
 
 
 def get_estudiantes(request):
-    estudiantes = list(Estudiante.objects.all().values(
+    estudiantes = list(Estudiante.objects.all().select_related('docente').values(
         'id', 'ci', 'apellidos_nombres', 'grado', 'seccion', 'sexo', 'edad', 'lugar_nac',
-        'fecha_nac', 'representante', 'ci_representante', 'direccion', 'tlf'
+        'fecha_nac', 'representante', 'ci_representante', 'direccion', 'tlf', 'notas',
+        'docente__nombres', 'docente__apellidos', 'promocion_aprobada', 'promocion_solicitada'
     ))
+
+    # Extraer la nota específica del diccionario y enviar el nombre completo del docente
+    for estudiante in estudiantes:
+        notas_dict = estudiante.get('notas', {})
+        estudiante['notas'] = notas_dict.get('notas', '')
+        docente_nombres = estudiante.get('docente__nombres', '')
+        docente_apellidos = estudiante.get('docente__apellidos', '')
+        estudiante['docente_nombre_completo'] = f"{docente_nombres} {docente_apellidos}"
+
     return JsonResponse({'estudiantes': estudiantes})
+
+
+
 
 
 def vista_constancia(request, estudiante_id):
@@ -364,6 +378,8 @@ def crear_tarea(request):
     if not user_data:
         return redirect('login')
 
+    usuario = Usuario.objects.get(id=user_data['user_id'])
+
     if request.method == 'POST':
         nombre = request.POST.get('nombre')
         descripcion = request.POST.get('descripcion')
@@ -373,7 +389,8 @@ def crear_tarea(request):
             nombre=nombre,
             descripcion=descripcion,
             fecha=fecha,
-            estado='Pendiente'  # Ajusta esto según tu lógica de negocio
+            estado='Pendiente',
+            usuario=usuario  # Asocia la tarea al usuario
         )
 
         return JsonResponse({'success': True})
@@ -381,29 +398,52 @@ def crear_tarea(request):
         return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
 
 @csrf_exempt
-def actualizar_tarea(request, tarea_id):
+def actualizar_tarea(request):
+    user_data = request.session.get('user_data')
+    
+    if not user_data:
+        return redirect('login')
+
+    usuario = Usuario.objects.get(id=user_data['user_id'])
+
     if request.method == 'POST':
-        data = json.loads(request.body)
-        estado = data.get('estado')
+        tarea_id = request.POST.get('id')
+        nombre = request.POST.get('nombre')
+        descripcion = request.POST.get('descripcion')
+        fecha = request.POST.get('fecha')
+
         try:
-            tarea = Tarea.objects.get(id=tarea_id)
-            tarea.estado = estado
+            tarea = Tarea.objects.get(id=tarea_id, usuario=usuario)
+            tarea.nombre = nombre
+            tarea.descripcion = descripcion
+            tarea.fecha = fecha
             tarea.save()
             return JsonResponse({'success': True})
         except Tarea.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Tarea no encontrada'})
-    return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
+            return JsonResponse({'success': False, 'error': 'Tarea no encontrada'}, status=404)
+    else:
+        return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
 
 @csrf_exempt
-def eliminar_tarea(request, tarea_id):
+def eliminar_tarea(request):
+    user_data = request.session.get('user_data')
+    
+    if not user_data:
+        return redirect('login')
+
+    usuario = Usuario.objects.get(id=user_data['user_id'])
+
     if request.method == 'POST':
+        tarea_id = request.POST.get('id')
+
         try:
-            tarea = Tarea.objects.get(id=tarea_id)
+            tarea = Tarea.objects.get(id=tarea_id, usuario=usuario)
             tarea.delete()
             return JsonResponse({'success': True})
         except Tarea.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Tarea no encontrada'})
-    return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
+            return JsonResponse({'success': False, 'error': 'Tarea no encontrada'}, status=404)
+    else:
+        return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
 
 @csrf_exempt
 def obtener_tareas(request):
@@ -412,7 +452,179 @@ def obtener_tareas(request):
     if not user_data:
         return redirect('login')
 
-    tareas = Tarea.objects.all().values('id', 'nombre', 'descripcion', 'fecha', 'estado')
+    usuario = Usuario.objects.get(id=user_data['user_id'])
+
+    tareas = Tarea.objects.filter(usuario=usuario).values('id', 'nombre', 'descripcion', 'fecha', 'estado')
     tareas_list = list(tareas)
 
     return JsonResponse({'tareas': tareas_list})
+
+@csrf_exempt
+def obtener_tarea(request, tarea_id):
+    user_data = request.session.get('user_data')
+    
+    if not user_data:
+        return redirect('login')
+
+    usuario = Usuario.objects.get(id=user_data['user_id'])
+
+    try:
+        tarea = Tarea.objects.get(id=tarea_id, usuario=usuario)
+        tarea_data = {
+            'id': tarea.id,
+            'nombre': tarea.nombre,
+            'descripcion': tarea.descripcion,
+            'fecha': tarea.fecha,
+            'estado': tarea.estado
+        }
+        return JsonResponse({'success': True, 'tarea': tarea_data})
+    except Tarea.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Tarea no encontrada'}, status=404)
+
+@csrf_exempt
+def tarea_completada(request):
+    user_data = request.session.get('user_data')
+    
+    if not user_data:
+        return redirect('login')
+
+    usuario = Usuario.objects.get(id=user_data['user_id'])
+
+    if request.method == 'POST':
+        tarea_id = request.POST.get('id')
+
+        try:
+            tarea = Tarea.objects.get(id=tarea_id, usuario=usuario)
+            tarea.estado = 'Completada'
+            tarea.save()
+            return JsonResponse({'success': True})
+        except Tarea.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Tarea no encontrada'}, status=404)
+    else:
+        return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
+
+
+
+##################################################  NOTAS ##########################################################
+
+
+def get_docentes(request):
+    docentes = Usuario.objects.filter(rol='Docente').values('id', 'nombres', 'apellidos')
+    return JsonResponse({'docentes': list(docentes)})
+
+@csrf_exempt
+def asignar_docente(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        docente_id = data.get('docente_id')
+        grado = data.get('grado')
+        seccion = data.get('seccion')
+
+        try:
+            # Verifica si el docente ya está asignado a otro grado y sección
+            Estudiante.objects.filter(docente_id=docente_id).update(docente_id=None)
+
+            # Asigna el docente al nuevo grado y sección
+            estudiantes_actualizados = Estudiante.objects.filter(grado=grado, seccion=seccion).update(docente_id=docente_id)
+
+            if estudiantes_actualizados > 0:
+                return JsonResponse({'success': True})
+            else:
+                return JsonResponse({'success': False, 'error': 'No se encontraron estudiantes para actualizar.'})
+        except Usuario.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Docente no encontrado'})
+
+    return JsonResponse({'success': False, 'error': 'Método no permitido'})
+
+
+
+
+
+
+
+@csrf_exempt
+def obtener_notas(request, estudiante_id):
+    estudiante = get_object_or_404(Estudiante, id=estudiante_id)
+    return JsonResponse({'notas': estudiante.notas})
+
+@csrf_exempt
+def registrar_notas(request, estudiante_id):
+    user_data = request.session.get('user_data')
+    
+    if not user_data:
+        return redirect('login')
+
+    usuario_rol = user_data.get('rol')
+    docente_id = user_data.get('id')  # Obteniendo el ID del docente desde la sesión
+
+    try:
+        estudiante = Estudiante.objects.get(id=estudiante_id)
+    except Estudiante.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Estudiante no encontrado'}, status=404)
+
+    if request.method == 'POST':
+        if usuario_rol == 'Docente':
+            data = json.loads(request.body)
+            notas = data.get('notas')
+            
+            if notas is not None:
+                if all(nota in 'ABCDE' for nota in notas.replace(',', '').replace(' ', '').split()):
+                    estudiante.notas = {'notas': notas}
+                    estudiante.docente_id = docente_id  # Guardar el ID del docente
+                    estudiante.promocion_solicitada = True
+                    estudiante.promocion_aprobada = False
+                    estudiante.save()
+                    return JsonResponse({'success': True})
+                else:
+                    return JsonResponse({'success': False, 'error': 'Formato de notas inválido'}, status=400)
+            else:
+                return JsonResponse({'success': False, 'error': 'No se proporcionaron notas'}, status=400)
+        else:
+            return JsonResponse({'success': False, 'error': 'Permiso denegado'}, status=403)
+    else:
+        return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
+
+
+
+
+def siguiente_grado(grado_actual):
+    grados = ['M III', 'G I', 'G II', 'G III', '1°', '2°', '3°', '4°', '5°', '6°']
+    grado_actual = grado_actual.strip()  # Eliminar espacios en blanco
+    if grado_actual not in grados:
+        print(f"El grado {grado_actual} no se encuentra en la lista de grados.")
+        return grado_actual
+
+    try:
+        indice_actual = grados.index(grado_actual)
+        return grados[indice_actual + 1] if indice_actual < len(grados) - 1 else grado_actual
+    except ValueError:
+        return grado_actual
+
+
+
+@csrf_exempt
+def aprobar_promocion(request, estudiante_id):
+    try:
+        estudiante = Estudiante.objects.get(id=estudiante_id)
+        estudiante.promocion_aprobada = True
+        estudiante.promocion_solicitada = False
+        nuevo_grado = siguiente_grado(estudiante.grado)
+        print(f"Cambiando grado de {estudiante.grado} a {nuevo_grado}")  # Depuración
+        estudiante.grado = nuevo_grado  # Actualizar al siguiente grado
+        estudiante.save()
+        return JsonResponse({'success': True})
+    except Estudiante.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Estudiante no encontrado'}, status=404)
+
+
+@csrf_exempt
+def denegar_promocion(request, estudiante_id):
+    try:
+        estudiante = Estudiante.objects.get(id=estudiante_id)
+        estudiante.promocion_solicitada = False
+        estudiante.save()
+        return JsonResponse({'success': True})
+    except Estudiante.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Estudiante no encontrado'}, status=404)
+
+

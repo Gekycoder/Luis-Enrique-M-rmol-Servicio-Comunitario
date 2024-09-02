@@ -1,0 +1,36 @@
+.notification .material-icons-sharp {
+    cursor: pointer;
+    margin: 0 5px;
+    transition: color 0.3s;
+}
+
+.notification .material-icons-sharp:hover {
+    color: #3b8bff; /* Puedes cambiar este color al que prefieras */
+}
+
+.notification .edit-task {
+    color: #4caf50; /* Verde para editar */
+}
+
+.notification .delete-task {
+    color: #f44336; /* Rojo para eliminar */
+}
+
+.notification .complete-task {
+    color: #ffeb3b; /* Amarillo para completado */
+}
+
+/* Estilo adicional para alinear los iconos */
+.notification .content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notification .content .info {
+    flex-grow: 1;
+}
+
+.notification .content .material-icons-sharp {
+    margin-left: 10px;
+}

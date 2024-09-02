@@ -27,18 +27,37 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   function initializeDataTable(tableSelector) {
+    console.log("Initializing DataTable"); // Depuración
     return $(tableSelector).DataTable({
-      language: spanishTranslation,
-      paging: true,
-      lengthChange: true,
-      searching: true,
-      ordering: true,
-      info: true,
-      autoWidth: false,
-      responsive: true,
-      // otras opciones...
+        language: spanishTranslation,
+        paging: true,
+        lengthChange: true,
+        searching: true,
+        ordering: true,
+        info: true,
+        autoWidth: false,
+        responsive: true,
+        initComplete: function() {
+            // Agregar filtros en las cabeceras de columnas de Grado y Sección
+            this.api().columns([3, 4]).every(function() { // Índices de columna 3: Grado, 4: Sección
+                const column = this;
+                const select = $('<select><option value="">Filtrar</option></select>')
+                    .appendTo($(column.header()).empty())
+                    .on('change', function() {
+                        const val = $.fn.dataTable.util.escapeRegex($(this).val());
+                        column
+                            .search(val ? '^' + val + '$' : '', true, false)
+                            .draw();
+                    });
+
+                // Poblar el select con valores únicos de la columna
+                column.data().unique().sort().each(function(d, j) {
+                    select.append('<option value="' + d + '">' + d + '</option>');
+                });
+            });
+        }
     });
-  }
+}
 
   const planningLink = document.getElementById('planning');
   const usersLink = document.getElementById('users');
@@ -58,6 +77,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const addUserWidget = document.getElementById('widget-addUser');
   const editUserWidget = document.getElementById('widget-editUser');
   const deleteUserWidget = document.getElementById('widget-deleteUser');
+  const teacherAssignmentLink = document.getElementById('assignTeacher');
+  const teacherWidget = document.getElementById('teacher-widget');
+  const teacherTableBody = document.getElementById('teacherTable').querySelector('tbody');
 
   const hideAllWidgets = () => {
       if (statusWidget) statusWidget.style.display = 'none';
@@ -68,6 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (addUserWidget) addUserWidget.style.display = 'none';
       if (editUserWidget) editUserWidget.style.display = 'none';
       if (deleteUserWidget) deleteUserWidget.style.display = 'none';
+      if (teacherWidget) teacherWidget.style.display = 'none'; 
   };
 
   const showUsersWidget = () => {
@@ -176,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let currentTab = determineActiveTab();
 
-  [studentsLink, retiroLink, estudioLink, asistenciaLink, inscripcionLink].forEach(link => {
+  [retiroLink, estudioLink, asistenciaLink, inscripcionLink].forEach(link => {
       link.addEventListener('click', (e) => {
           e.preventDefault();
           currentTab = e.target.id.replace('-link', '');
@@ -204,6 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
                           <td>${estudiante.ci_representante}</td>
                           <td>${estudiante.direccion}</td>
                           <td>${estudiante.tlf}</td>
+                          <td>${estudiante.notas}</td>
                       `;
                   });
 
@@ -365,4 +389,114 @@ logoutButtons.forEach(button => {
         }).catch(error => console.error('Error:', error));
     });
 });
+
+    // Mostrar el widget de docentes
+    const showTeacherWidget = () => {
+        hideAllWidgets();
+        if (teacherWidget) teacherWidget.style.display = 'block';
+        fetchTeacherData(); // Cargar los datos de los docentes
+    };
+
+    // Agregar eventos para mostrar los widgets correspondientes
+    if (teacherAssignmentLink) {
+        teacherAssignmentLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showTeacherWidget();
+        });
+    }
+
+    // Función para cargar los datos de los docentes desde el servidor
+    function fetchTeacherData() {
+        console.log('Cargando datos de docentes desde el servidor');  // Depuración
+        fetch('/get-docentes/')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Datos de docentes recibidos:', data);  // Depuración
+                populateTeacherTable(data.docentes);  // Poblar la tabla con los datos recibidos
+            })
+            .catch(error => console.error('Error al cargar los datos de docentes:', error));
+    }
+
+    // Función para poblar la tabla con los docentes
+    function populateTeacherTable(docentes) {
+        const teacherTableBody = document.getElementById('teacherTable').querySelector('tbody');
+        if (!teacherTableBody) {
+            console.error('No se encontró el cuerpo de la tabla de docentes');
+            return;
+        }
+    
+        // Limpiar la tabla antes de poblarla
+        teacherTableBody.innerHTML = '';
+    
+        const grados = ['M III', 'G III', 'G II', 'G I', '1°', '2°', '3°', '4°', '5°', '6°'];
+        const secciones = ['A', 'B', 'C', 'D'];
+    
+        // Agregar filas con los datos de los docentes
+        docentes.forEach(teacher => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${teacher.id}</td>
+                <td>${teacher.nombres}</td>
+                <td>${teacher.apellidos}</td>
+                <td>
+                    <select class="grade-select" data-docente-id="${teacher.id}">
+                        ${grados.map(grado => `<option value="${grado}">${grado}</option>`).join('')}
+                    </select>
+                </td>
+                <td>
+                    <select class="section-select" data-docente-id="${teacher.id}">
+                        ${secciones.map(seccion => `<option value="${seccion}">${seccion}</option>`).join('')}
+                    </select>
+                </td>
+                <td>
+                    <button class="assign-grade" data-docente-id="${teacher.id}">Asignar</button>
+                </td>
+            `;
+            teacherTableBody.appendChild(row);
+        });
+    
+        console.log('Tabla de docentes poblada con nuevos datos');
+    }
+    
+    document.addEventListener('click', function (event) {
+        if (event.target.classList.contains('assign-grade')) {
+            const docenteId = event.target.dataset.docenteId;
+            const selectedGrade = document.querySelector(`.grade-select[data-docente-id="${docenteId}"]`).value;
+            const selectedSection = document.querySelector(`.section-select[data-docente-id="${docenteId}"]`).value;
+    
+            console.log(`Asignando grado ${selectedGrade} y sección ${selectedSection} al docente ${docenteId}`);  // Depuración
+    
+            fetch('/asignar-docente/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value
+                },
+                body: JSON.stringify({
+                    docente_id: docenteId,
+                    grado: selectedGrade,
+                    seccion: selectedSection
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Respuesta del servidor:", data);  // Depuración
+                if (data.success) {
+                    alert('Docente asignado correctamente.');
+                } else {
+                    alert('Hubo un error al asignar al docente.');
+                }
+            })
+            .catch(error => {
+                console.error('Error al asignar el docente:', error);
+            });
+        }
+    });
+    
+    
 });
