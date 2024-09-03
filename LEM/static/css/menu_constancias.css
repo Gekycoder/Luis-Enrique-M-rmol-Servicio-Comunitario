@@ -20,11 +20,12 @@
 
 /* Configuración de la visualización del submenú */
 .sidebar-submenu {
-    display: flex; /* Alineación horizontal de los enlaces */
-    flex-direction: column; /* Los enlaces se apilan verticalmente */
-    width: 100%; /* Asegura que el submenu use todo el ancho disponible */
-    box-sizing: border-box; /* Asegura que el padding no afecte el ancho total */
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    box-sizing: border-box;
     margin-left: 2rem;
+    margin-bottom: -1rem;
 }
 
 /* Estilo para mostrar el submenú */

@@ -438,6 +438,9 @@ logoutButtons.forEach(button => {
     
         // Agregar filas con los datos de los docentes
         docentes.forEach(teacher => {
+            const selectedGrade = teacher.grado || ''; // Si no hay grado asignado, se muestra en blanco
+            const selectedSection = teacher.seccion || ''; // Si no hay sección asignada, se muestra en blanco
+    
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${teacher.id}</td>
@@ -445,12 +448,14 @@ logoutButtons.forEach(button => {
                 <td>${teacher.apellidos}</td>
                 <td>
                     <select class="grade-select" data-docente-id="${teacher.id}">
-                        ${grados.map(grado => `<option value="${grado}">${grado}</option>`).join('')}
+                        <option value="">Seleccione un grado</option>
+                        ${grados.map(grado => `<option value="${grado}" ${grado === selectedGrade ? 'selected' : ''}>${grado}</option>`).join('')}
                     </select>
                 </td>
                 <td>
                     <select class="section-select" data-docente-id="${teacher.id}">
-                        ${secciones.map(seccion => `<option value="${seccion}">${seccion}</option>`).join('')}
+                        <option value="">Seleccione una sección</option>
+                        ${secciones.map(seccion => `<option value="${seccion}" ${seccion === selectedSection ? 'selected' : ''}>${seccion}</option>`).join('')}
                     </select>
                 </td>
                 <td>
@@ -462,6 +467,7 @@ logoutButtons.forEach(button => {
     
         console.log('Tabla de docentes poblada con nuevos datos');
     }
+    
     
     document.addEventListener('click', function (event) {
         if (event.target.classList.contains('assign-grade')) {

@@ -190,11 +190,18 @@ document.addEventListener('DOMContentLoaded', () => {
                             const bellColor = estudiante.promocion_solicitada == 1 ? 'red' : 'gray';
                             rowContent += `
                             <td>
-                                <button class="review-promotion" data-id="${estudiante.id}" data-name="${estudiante.apellidos_nombres}" data-grade="${estudiante.grado}" data-docente="${estudiante.docente_nombre_completo}" data-notas="${estudiante.notas}" style="background: none; border: none; cursor: pointer;">
+                                <button class="review-promotion" 
+                                        data-id="${estudiante.id}" 
+                                        data-name="${estudiante.apellidos_nombres}" 
+                                        data-grade="${estudiante.grado}" 
+                                        data-docente="${estudiante.docente_nombre_completo}" 
+                                        data-notas="${estudiante.notas}" 
+                                        style="background: none; border: none; cursor: pointer;">
                                     <i class="fas fa-bell" style="color: ${bellColor};"></i>
                                 </button>
                             </td>`;
                         }
+                        
                         
                     row.innerHTML = rowContent;
                 });

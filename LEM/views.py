@@ -1,4 +1,5 @@
 from django.http import JsonResponse
+from django.db.models import Subquery, OuterRef
 from .models import Usuario, Estudiante, Tarea, PromocionSolicitud
 from django.http import HttpResponse
 from django.contrib.auth.hashers import make_password, check_password
@@ -256,7 +257,7 @@ def get_estudiantes(request):
     estudiantes = list(Estudiante.objects.all().select_related('docente').values(
         'id', 'ci', 'apellidos_nombres', 'grado', 'seccion', 'sexo', 'edad', 'lugar_nac',
         'fecha_nac', 'representante', 'ci_representante', 'direccion', 'tlf', 'notas',
-        'docente__nombres', 'docente__apellidos', 'promocion_aprobada', 'promocion_solicitada'
+        'docente__nombres', 'docente__apellidos', 'promocion_aprobada', 'promocion_solicitada', 'docente_id'
     ))
 
     # Extraer la nota específica del diccionario y enviar el nombre completo del docente
@@ -509,8 +510,18 @@ def tarea_completada(request):
 
 
 def get_docentes(request):
-    docentes = Usuario.objects.filter(rol='Docente').values('id', 'nombres', 'apellidos')
+    docentes = Usuario.objects.filter(rol='Docente').annotate(
+        grado=Subquery(
+            Estudiante.objects.filter(docente_id=OuterRef('id'))
+            .values('grado')[:1]
+        ),
+        seccion=Subquery(
+            Estudiante.objects.filter(docente_id=OuterRef('id'))
+            .values('seccion')[:1]
+        )
+    ).values('id', 'nombres', 'apellidos', 'grado', 'seccion')
     return JsonResponse({'docentes': list(docentes)})
+
 
 @csrf_exempt
 def asignar_docente(request):
@@ -559,6 +570,7 @@ def registrar_notas(request, estudiante_id):
 
     try:
         estudiante = Estudiante.objects.get(id=estudiante_id)
+        print(f"Estudiante encontrado: {estudiante.apellidos_nombres}, Docente asignado antes: {estudiante.docente_id}")
     except Estudiante.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Estudiante no encontrado'}, status=404)
 
@@ -570,10 +582,24 @@ def registrar_notas(request, estudiante_id):
             if notas is not None:
                 if all(nota in 'ABCDE' for nota in notas.replace(',', '').replace(' ', '').split()):
                     estudiante.notas = {'notas': notas}
-                    estudiante.docente_id = docente_id  # Guardar el ID del docente
+
+                    if estudiante.docente_id is None:
+                        estudiante.docente_id = docente_id
+                        print(f"Docente ID {docente_id} asignado a Estudiante ID {estudiante_id}")
+                    else:
+                        print(f"Docente ya asignado: {estudiante.docente_id}")
+
                     estudiante.promocion_solicitada = True
                     estudiante.promocion_aprobada = False
+
+                    # Guardado de estudiante con depuración
+                    print(f"Guardando estudiante ID {estudiante.id} con Docente ID {estudiante.docente_id}")
                     estudiante.save()
+
+                    # Verificar después de guardar
+                    estudiante.refresh_from_db()
+                    print(f"Docente ID después de guardar: {estudiante.docente_id}")
+                    
                     return JsonResponse({'success': True})
                 else:
                     return JsonResponse({'success': False, 'error': 'Formato de notas inválido'}, status=400)
@@ -583,7 +609,6 @@ def registrar_notas(request, estudiante_id):
             return JsonResponse({'success': False, 'error': 'Permiso denegado'}, status=403)
     else:
         return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
-
 
 
 

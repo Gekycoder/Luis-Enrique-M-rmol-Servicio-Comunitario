@@ -369,7 +369,13 @@
                             <input type="email" name="correo" placeholder="Correo" required>
                             <input type="text" name="telefonos" placeholder="Teléfonos" required>
                             <input type="text" name="direccion" placeholder="Direccion" required>
-                            <input type="text" name="rol" placeholder="Rol" required>
+                            <select name="rol" required>
+                                <option value="" disabled selected>Seleccionar Rol</option>
+                                <option value="Director">Director</option>
+                                <option value="Docente">Docente</option>
+                                <option value="Secretaria">Secretaria</option>
+                                <option value="Administrador">Administrador</option>
+                            </select>
                             <button type="submit">Agregar</button>
                         </form>
                     </div>
