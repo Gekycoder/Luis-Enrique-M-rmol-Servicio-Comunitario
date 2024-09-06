@@ -32,6 +32,14 @@ urlpatterns = [
     path('aprobar-promocion/<int:estudiante_id>/', views.aprobar_promocion, name='aprobar_promocion'),
     path('get-docentes/', views.get_docentes, name='get_docentes'),
     path('asignar-docente/', views.asignar_docente, name='asignar_docente'),
+    path('get-estudiante/<int:id>/', views.get_estudiante, name='get_estudiante'), # Para obtener estudiantes al editar y elmiminar
+    path('agregar-estudiante/', views.agregar_estudiante, name='agregar_estudiante'),
+    path('modificar-estudiante/', views.modificar_estudiante, name='modificar_estudiante'),
+    path('eliminar-estudiante/', views.eliminar_estudiante, name='eliminar_estudiante'),
+
+
+    ################# FALTAN LOS PATH DE AGG, EDIT Y DELETE ESTUDIANTES ######################
+
 ] 
 
 if settings.DEBUG:

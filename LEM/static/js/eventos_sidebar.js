@@ -79,6 +79,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const deleteUserWidget = document.getElementById('widget-deleteUser');
   const teacherAssignmentLink = document.getElementById('assignTeacher');
   const teacherWidget = document.getElementById('teacher-widget');
+  const addStudentLink = document.getElementById('addStudent');
+  const editStudentLink = document.getElementById('editStudent');
+  const deleteStudentLink = document.getElementById('deleteStudent');
+  const addStudentWidget = document.getElementById('widget-addStudent');
+  const editStudentWidget = document.getElementById('widget-editStudent');
+  const deleteStudentWidget = document.getElementById('widget-deleteStudent');
   const teacherTableBody = document.getElementById('teacherTable').querySelector('tbody');
 
   const hideAllWidgets = () => {
@@ -91,6 +97,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (editUserWidget) editUserWidget.style.display = 'none';
       if (deleteUserWidget) deleteUserWidget.style.display = 'none';
       if (teacherWidget) teacherWidget.style.display = 'none'; 
+
+      if (addStudentWidget) addStudentWidget.style.display = 'none';
+      if (editStudentWidget) editStudentWidget.style.display = 'none';
+      if (deleteStudentWidget) deleteStudentWidget.style.display = 'none';
   };
 
   const showUsersWidget = () => {
@@ -209,7 +219,8 @@ document.addEventListener('DOMContentLoaded', () => {
               .then(data => {
                   const studentsTableBody = document.querySelector('#students-table tbody');
                   studentsTableBody.innerHTML = '';
-
+  
+                  // Mostrar los estudiantes que se recibieron desde el backend (ya filtrados)
                   data.estudiantes.forEach(estudiante => {
                       const row = studentsTableBody.insertRow();
                       row.setAttribute('data-student-id', estudiante.id);
@@ -230,12 +241,16 @@ document.addEventListener('DOMContentLoaded', () => {
                           <td>${estudiante.notas}</td>
                       `;
                   });
-
+  
+                  // Inicializar DataTable
                   const studentsTable = initializeDataTable('#students-table');
+  
+                  // Filtro de búsqueda
                   document.querySelector('#students-search').addEventListener('keyup', function() {
                       studentsTable.search(this.value).draw();
                   });
-
+  
+                  // Manejar menú contextual
                   studentsTableBody.addEventListener('contextmenu', function(e) {
                       e.preventDefault();
                       const row = e.target.closest('tr');
@@ -248,7 +263,8 @@ document.addEventListener('DOMContentLoaded', () => {
                           updateContextMenu();
                       }
                   });
-
+  
+                  // Ocultar menú contextual al hacer clic en otro lugar
                   document.addEventListener('click', function(e) {
                       if (contextMenu.style.display === 'block' && !contextMenu.contains(e.target)) {
                           contextMenu.style.display = 'none';
@@ -260,6 +276,8 @@ document.addEventListener('DOMContentLoaded', () => {
               });
       });
   });
+  
+
 
   // Agregar y gestionar usuarios
   if (addUserLink) {
@@ -423,86 +441,248 @@ logoutButtons.forEach(button => {
     }
 
     // Función para poblar la tabla con los docentes
-    function populateTeacherTable(docentes) {
-        const teacherTableBody = document.getElementById('teacherTable').querySelector('tbody');
-        if (!teacherTableBody) {
-            console.error('No se encontró el cuerpo de la tabla de docentes');
-            return;
-        }
-    
-        // Limpiar la tabla antes de poblarla
-        teacherTableBody.innerHTML = '';
-    
-        const grados = ['M III', 'G III', 'G II', 'G I', '1°', '2°', '3°', '4°', '5°', '6°'];
-        const secciones = ['A', 'B', 'C', 'D'];
-    
-        // Agregar filas con los datos de los docentes
-        docentes.forEach(teacher => {
-            const selectedGrade = teacher.grado || ''; // Si no hay grado asignado, se muestra en blanco
-            const selectedSection = teacher.seccion || ''; // Si no hay sección asignada, se muestra en blanco
-    
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${teacher.id}</td>
-                <td>${teacher.nombres}</td>
-                <td>${teacher.apellidos}</td>
-                <td>
-                    <select class="grade-select" data-docente-id="${teacher.id}">
-                        <option value="">Seleccione un grado</option>
-                        ${grados.map(grado => `<option value="${grado}" ${grado === selectedGrade ? 'selected' : ''}>${grado}</option>`).join('')}
-                    </select>
-                </td>
-                <td>
-                    <select class="section-select" data-docente-id="${teacher.id}">
-                        <option value="">Seleccione una sección</option>
-                        ${secciones.map(seccion => `<option value="${seccion}" ${seccion === selectedSection ? 'selected' : ''}>${seccion}</option>`).join('')}
-                    </select>
-                </td>
-                <td>
-                    <button class="assign-grade" data-docente-id="${teacher.id}">Asignar</button>
-                </td>
-            `;
-            teacherTableBody.appendChild(row);
-        });
-    
-        console.log('Tabla de docentes poblada con nuevos datos');
+function populateTeacherTable(docentes) {
+    const teacherTableBody = document.getElementById('teacherTable').querySelector('tbody');
+    if (!teacherTableBody) {
+        console.error('No se encontró el cuerpo de la tabla de docentes');
+        return;
     }
-    
-    
-    document.addEventListener('click', function (event) {
-        if (event.target.classList.contains('assign-grade')) {
-            const docenteId = event.target.dataset.docenteId;
-            const selectedGrade = document.querySelector(`.grade-select[data-docente-id="${docenteId}"]`).value;
-            const selectedSection = document.querySelector(`.section-select[data-docente-id="${docenteId}"]`).value;
-    
-            console.log(`Asignando grado ${selectedGrade} y sección ${selectedSection} al docente ${docenteId}`);  // Depuración
-    
-            fetch('/asignar-docente/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value
-                },
-                body: JSON.stringify({
-                    docente_id: docenteId,
-                    grado: selectedGrade,
-                    seccion: selectedSection
-                })
+
+    // Limpiar la tabla antes de poblarla
+    teacherTableBody.innerHTML = '';
+
+    const grados = ['I', 'II', 'III', '1°', '2°', '3°', '4°', '5°', '6°'];
+    const secciones = ['A', 'B', 'U'];
+
+    // Agregar filas con los datos de los docentes
+    docentes.forEach(teacher => {
+        const selectedGrade = teacher.grado || ''; // Grado asignado
+        const selectedSection = teacher.seccion || ''; // Sección asignada
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${teacher.id}</td>
+            <td>${teacher.nombres}</td>
+            <td>${teacher.apellidos}</td>
+            <td>
+                <select class="grade-select" data-docente-id="${teacher.id}">
+                    <option value="">Seleccione un grado</option>
+                    ${grados.map(grado => `<option value="${grado}" ${grado === selectedGrade ? 'selected' : ''}>${grado}</option>`).join('')}
+                </select>
+            </td>
+            <td>
+                <select class="section-select" data-docente-id="${teacher.id}">
+                    <option value="">Seleccione una sección</option>
+                    ${secciones.map(seccion => `<option value="${seccion}" ${seccion === selectedSection ? 'selected' : ''}>${seccion}</option>`).join('')}
+                </select>
+            </td>
+            <td>
+                <button class="assign-grade" data-docente-id="${teacher.id}">Asignar</button>
+            </td>
+        `;
+        teacherTableBody.appendChild(row);
+    });
+
+    console.log('Tabla de docentes poblada con nuevos datos');
+}
+
+document.addEventListener('click', function (event) {
+    if (event.target.classList.contains('assign-grade')) {
+        const docenteId = event.target.dataset.docenteId;
+        const selectedGrade = document.querySelector(`.grade-select[data-docente-id="${docenteId}"]`).value;
+        const selectedSection = document.querySelector(`.section-select[data-docente-id="${docenteId}"]`).value;
+
+        console.log(`Asignando grado ${selectedGrade} y sección ${selectedSection} al docente ${docenteId}`);  // Depuración
+
+        fetch('/asignar-docente/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value
+            },
+            body: JSON.stringify({
+                docente_id: docenteId,
+                grado: selectedGrade,
+                seccion: selectedSection
             })
-            .then(response => response.json())
-            .then(data => {
-                console.log("Respuesta del servidor:", data);  // Depuración
-                if (data.success) {
-                    alert('Docente asignado correctamente.');
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Respuesta del servidor:", data);  // Depuración
+            if (data.success) {
+                alert('Docente asignado correctamente.');
+            } else {
+                // Si el servidor devuelve un error relacionado con el límite de docentes
+                if (data.error && data.error.includes('asignados')) {
+                    alert(data.error);
                 } else {
                     alert('Hubo un error al asignar al docente.');
                 }
-            })
-            .catch(error => {
-                console.error('Error al asignar el docente:', error);
-            });
+            }
+        })
+        .catch(error => {
+            console.error('Error al asignar el docente:', error);
+        });
+    }
+});
+    
+    
+// Agregar y gestionar estudiantes
+if (addStudentLink) {
+    addStudentLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        hideAllWidgets();
+        if (addStudentWidget) addStudentWidget.style.display = 'block';
+    });
+}
+
+if (editStudentLink) {
+    editStudentLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        hideAllWidgets();
+        if (editStudentWidget) editStudentWidget.style.display = 'block';
+    });
+}
+
+if (deleteStudentLink) {
+    deleteStudentLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        hideAllWidgets();
+        if (deleteStudentWidget) deleteStudentWidget.style.display = 'block';
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const gradoSelect = document.getElementById('gradoSelect');
+    const seccionSelect = document.getElementById('seccionSelect');
+
+    const seccionesOptions = {
+        'I': ['U'],
+        'II': ['U'],
+        'III': ['A', 'B'],
+        '1°': ['A', 'B'],
+        '2°': ['A', 'B'],
+        '3°': ['A', 'B'],
+        '4°': ['A', 'B'],
+        '5°': ['A', 'B'],
+        '6°': ['A', 'B']
+    };
+
+    gradoSelect.addEventListener('change', function() {
+        const selectedGrado = this.value;
+
+        // Limpiar las opciones actuales
+        seccionSelect.innerHTML = '<option value="" disabled selected>Sección</option>';
+
+        // Obtener las opciones correspondientes según el grado seleccionado
+        const opciones = seccionesOptions[selectedGrado] || [];
+
+        // Añadir las nuevas opciones
+        opciones.forEach(opcion => {
+            const optionElement = document.createElement('option');
+            optionElement.value = opcion;
+            optionElement.textContent = `Sección ${opcion}`;
+            seccionSelect.appendChild(optionElement);
+        });
+
+        // Si solo hay una opción, seleccionarla automáticamente
+        if (opciones.length === 1) {
+            seccionSelect.value = opciones[0];
         }
     });
+});
+
+
+if (document.getElementById('addStudentForm')) {
+    document.getElementById('addStudentForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+
+        fetch('/agregar-estudiante/', {
+            method: 'POST',
+            body: formData,
+        }).then(response => response.json()).then(data => {
+            if (data.success) {
+                alert('Estudiante agregado exitosamente');
+                location.reload();
+            } else {
+                alert('Error al agregar estudiante: ' + data.error);
+            }
+        }).catch(error => {
+            console.error('Error al agregar estudiante:', error);
+            alert('Error al agregar estudiante: ' + error);
+        });
+    });
+}
+
+
+if (document.getElementById('editStudentForm')) {
+    document.getElementById('editStudentForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        fetch('/modificar-estudiante/', {
+            method: 'POST',
+            body: formData,
+        }).then(response => response.json()).then(data => {
+            if (data.success) {
+                alert('Estudiante modificado exitosamente');
+                location.reload();
+            } else {
+                alert('Error al modificar estudiante: ' + data.error);
+            }
+        });
+    });
+
+    document.getElementById('studentId').addEventListener('change', function() {
+        const studentId = this.value;
+        fetch(`/get-estudiante/${studentId}/`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al obtener los datos del estudiante');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.estudiante) {
+                    document.getElementById('studentCI').value = data.estudiante.ci;
+                    document.getElementById('studentApellidosNombres').value = data.estudiante.apellidos_nombres;
+                    document.getElementById('studentGrado').value = data.estudiante.grado;
+                    document.getElementById('studentSeccion').value = data.estudiante.seccion;
+                    document.getElementById('studentSexo').value = data.estudiante.sexo;
+                    document.getElementById('studentEdad').value = data.estudiante.edad;
+                    document.getElementById('studentLugarNac').value = data.estudiante.lugar_nac;
+                    document.getElementById('studentFechaNac').value = data.estudiante.fecha_nac;
+                    document.getElementById('studentRepresentante').value = data.estudiante.representante;
+                    document.getElementById('studentCIRepresentante').value = data.estudiante.ci_representante;
+                    document.getElementById('studentDireccion').value = data.estudiante.direccion;
+                    document.getElementById('studentTlf').value = data.estudiante.tlf;
+                } else {
+                    alert('Estudiante no encontrado');
+                }
+            })
+            .catch(error => {
+                console.error('Error al obtener los datos del estudiante:', error);
+            });
+    });
     
+}
+
+if (document.getElementById('deleteStudentForm')) {
+    document.getElementById('deleteStudentForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        fetch('/eliminar-estudiante/', {
+            method: 'POST',
+            body: formData,
+        }).then(response => response.json()).then(data => {
+            if (data.success) {
+                alert('Estudiante eliminado exitosamente');
+                location.reload();
+            } else {
+                alert('Error al eliminar estudiante: ' + data.error);
+            }
+        });
+    });
+}
     
 });

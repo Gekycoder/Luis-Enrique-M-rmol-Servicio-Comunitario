@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-from django.db.models import Subquery, OuterRef
+from django.db.models import Q, OuterRef, Subquery
 from .models import Usuario, Estudiante, Tarea, PromocionSolicitud
 from django.http import HttpResponse
 from django.contrib.auth.hashers import make_password, check_password
@@ -16,8 +16,9 @@ from django.shortcuts import render
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.http import JsonResponse, HttpResponseBadRequest
-import logging, json
+import logging, json, traceback
 from django.conf import settings
+
 
 
 
@@ -103,6 +104,24 @@ def get_user_data(request):
 
 logger = logging.getLogger(__name__)
 
+def normalizar_telefono(telefono):
+    # Eliminar cualquier carácter que no sea un número
+    telefono = ''.join(filter(str.isdigit, telefono))
+
+    # Verificar si el teléfono ya tiene el formato correcto
+    if telefono.startswith('58'):
+        return f'+{telefono}'
+    
+    # Si el teléfono empieza con 04 o 4, agregar el prefijo +58
+    if telefono.startswith('04'):
+        return f'+58{telefono[1:]}'
+    elif telefono.startswith('4'):
+        return f'+584{telefono[1:]}'
+
+    # Si ya tiene el formato correcto con +58, devolverlo tal cual
+    return f'+58{telefono}'
+
+
 @csrf_exempt
 def agregar_usuario(request):
     if request.method == 'POST':
@@ -116,9 +135,12 @@ def agregar_usuario(request):
         direccion = request.POST.get('direccion')
         rol = request.POST.get('rol')
         
-
+        # Verificar si el correo ya está en uso
         if Usuario.objects.filter(correo=correo).exists():
             return JsonResponse({'success': False, 'error': 'Correo ya está en uso'}, status=400)
+
+        # Normalizar el teléfono antes de guardarlo
+        telefonos_normalizado = normalizar_telefono(telefonos)
 
         nuevo_usuario = Usuario(
             nombres=nombres,
@@ -127,7 +149,7 @@ def agregar_usuario(request):
             usuario=usuario,
             contrasena=make_password(contrasena),
             correo=correo,
-            telefonos=telefonos,
+            telefonos=telefonos_normalizado,
             direccion=direccion,
             rol=rol
         )
@@ -138,6 +160,7 @@ def agregar_usuario(request):
         except IntegrityError as e:
             logger.error(f"Error al guardar el usuario: {str(e)}")
             return JsonResponse({'success': False, 'error': f'Error al guardar el usuario: {str(e)}'}, status=500)
+
     return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
 
 @csrf_exempt
@@ -190,28 +213,30 @@ def logout_view(request):
 @csrf_exempt
 def sesion_exitosa(request):
     user_data = request.session.get('user_data')
-    
+
+    # Redirigir al login si no hay datos de usuario
     if not user_data:
         return redirect('login')
 
     try:
         user = Usuario.objects.get(id=user_data['user_id'])
 
-        # Pasar el rol del usuario al contexto y la URL de la foto de perfil
-        profile_photo_url = f"{settings.MEDIA_URL}{user.profile_photo}" if user.profile_photo else None
-        print(f"Profile photo URL: {profile_photo_url}")  # Para verificar la URL
-
+        # Preparar los datos que pasarán al frontend
         contexto = {
-            'usuario_nombre': user.usuario,
-            'usuario_rol': user.rol,
-            'profile_photo_url': profile_photo_url,
-            'is_admin_or_director': user.rol in ['Administrador', 'Director'],
-            'is_docente': user.rol == 'Docente'
+            'usuario_nombre': user.usuario,  # Nombre del usuario logueado
+            'usuario_rol': user.rol,  # Rol del usuario
+            'usuario_id': user.id,  # ID del usuario logueado
+            'profile_photo_url': f"{settings.MEDIA_URL}{user.profile_photo}" if user.profile_photo else None,  # Foto de perfil
+            'is_admin_or_director': user.rol in ['Administrador', 'Director'],  # Verifica si es admin o director
+            'is_docente': user.rol == 'Docente',  # Verifica si el usuario es un docente
         }
 
         return render(request, 'sesion_exitosa.html', contexto)
+    
     except Usuario.DoesNotExist:
+        # Redirigir al login si el usuario no existe
         return redirect('login')
+
 
 # Para obtener la lista de usuarios dentro de la base de datos
 def get_usuarios(request):
@@ -254,21 +279,33 @@ def get_usuario(request, user_id):
 
 
 def get_estudiantes(request):
-    estudiantes = list(Estudiante.objects.all().select_related('docente').values(
-        'id', 'ci', 'apellidos_nombres', 'grado', 'seccion', 'sexo', 'edad', 'lugar_nac',
-        'fecha_nac', 'representante', 'ci_representante', 'direccion', 'tlf', 'notas',
-        'docente__nombres', 'docente__apellidos', 'promocion_aprobada', 'promocion_solicitada', 'docente_id'
-    ))
+    # Obtener el usuario que está logueado
+    user_data = request.session.get('user_data')
+    if not user_data:
+        return JsonResponse({'error': 'No hay usuario logueado'}, status=400)
 
-    # Extraer la nota específica del diccionario y enviar el nombre completo del docente
-    for estudiante in estudiantes:
-        notas_dict = estudiante.get('notas', {})
-        estudiante['notas'] = notas_dict.get('notas', '')
-        docente_nombres = estudiante.get('docente__nombres', '')
-        docente_apellidos = estudiante.get('docente__apellidos', '')
-        estudiante['docente_nombre_completo'] = f"{docente_nombres} {docente_apellidos}"
+    try:
+        user = Usuario.objects.get(id=user_data['user_id'])
 
-    return JsonResponse({'estudiantes': estudiantes})
+        # Filtrar los estudiantes que tienen asignado al docente logueado
+        if user.rol == 'Docente':
+            estudiantes = Estudiante.objects.filter(
+                Q(docente=user.id) | Q(docente2=user.id) | Q(docente3=user.id)
+            ).select_related('docente').values(
+                'id', 'ci', 'apellidos_nombres', 'grado', 'seccion', 'sexo', 'edad', 'lugar_nac',
+                'fecha_nac', 'representante', 'ci_representante', 'direccion', 'tlf', 'notas',
+                'docente__nombres', 'docente__apellidos', 'promocion_aprobada', 'promocion_solicitada'
+            )
+        else:
+            # Si el usuario no es docente, devolver un error o un resultado vacío
+            return JsonResponse({'error': 'Solo los docentes pueden ver estudiantes asignados'}, status=403)
+
+        # Convertir a lista y enviar la respuesta en JSON
+        estudiantes_list = list(estudiantes)
+        return JsonResponse({'estudiantes': estudiantes_list})
+    
+    except Usuario.DoesNotExist:
+        return JsonResponse({'error': 'Usuario no encontrado'}, status=400)
 
 
 
@@ -512,12 +549,18 @@ def tarea_completada(request):
 def get_docentes(request):
     docentes = Usuario.objects.filter(rol='Docente').annotate(
         grado=Subquery(
-            Estudiante.objects.filter(docente_id=OuterRef('id'))
-            .values('grado')[:1]
+            Estudiante.objects.filter(
+                Q(docente=OuterRef('id')) |
+                Q(docente2=OuterRef('id')) |
+                Q(docente3=OuterRef('id'))
+            ).values('grado')[:1]
         ),
         seccion=Subquery(
-            Estudiante.objects.filter(docente_id=OuterRef('id'))
-            .values('seccion')[:1]
+            Estudiante.objects.filter(
+                Q(docente=OuterRef('id')) |
+                Q(docente2=OuterRef('id')) |
+                Q(docente3=OuterRef('id'))
+            ).values('seccion')[:1]
         )
     ).values('id', 'nombres', 'apellidos', 'grado', 'seccion')
     return JsonResponse({'docentes': list(docentes)})
@@ -526,30 +569,54 @@ def get_docentes(request):
 @csrf_exempt
 def asignar_docente(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        docente_id = data.get('docente_id')
-        grado = data.get('grado')
-        seccion = data.get('seccion')
-
         try:
-            # Verifica si el docente ya está asignado a otro grado y sección
-            Estudiante.objects.filter(docente_id=docente_id).update(docente_id=None)
+            data = json.loads(request.body)
+            docente_id = data.get('docente_id')
+            grado = data.get('grado')
+            seccion = data.get('seccion')
 
-            # Asigna el docente al nuevo grado y sección
-            estudiantes_actualizados = Estudiante.objects.filter(grado=grado, seccion=seccion).update(docente_id=docente_id)
+            # Limpiar asignaciones previas para este docente
+            Estudiante.objects.filter(Q(docente=docente_id) | Q(docente2=docente_id) | Q(docente3=docente_id)).update(docente=None, docente2=None, docente3=None)
 
-            if estudiantes_actualizados > 0:
-                return JsonResponse({'success': True})
+            # Definir qué grados y secciones permiten hasta 3 docentes
+            grados_secciones_3_docentes = [
+                ('I', 'U'), ('II', 'U'), ('III', 'A'), ('III', 'B'),
+                ('1°', 'A'), ('1°', 'B')
+            ]
+
+            # Verificación del número de docentes permitidos según el grado y sección
+            if (grado, seccion) in grados_secciones_3_docentes:
+                max_docentes = 3  # Permitir hasta 3 docentes en estos grados y secciones
             else:
-                return JsonResponse({'success': False, 'error': 'No se encontraron estudiantes para actualizar.'})
-        except Usuario.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Docente no encontrado'})
+                max_docentes = 1  # Permitir solo 1 docente para el resto
 
-    return JsonResponse({'success': False, 'error': 'Método no permitido'})
+            # Verifica cuántos docentes ya están asignados al mismo grado y sección
+            estudiantes_asignados = Estudiante.objects.filter(grado=grado, seccion=seccion)
+            
+            # Contar docentes únicos asignados en los campos docente, docente2, docente3
+            docentes_actuales = estudiantes_asignados.values_list('docente', 'docente2', 'docente3').distinct()
+            docentes_contados = len(set([doc for sublist in docentes_actuales for doc in sublist if doc]))
 
+            print(f'Número de docentes asignados en {grado} {seccion}: {docentes_contados}')
 
+            # Si ya hay el número máximo de docentes, no permitir más asignaciones
+            if docentes_contados >= max_docentes:
+                return JsonResponse({'success': False, 'error': f'Este grado y sección ya tienen asignados {max_docentes} docentes. Reasigna primero.'})
 
+            # Asignar el docente al primer campo disponible
+            if estudiantes_asignados.filter(docente__isnull=True).exists():
+                estudiantes_asignados.update(docente=docente_id)
+            elif estudiantes_asignados.filter(docente2__isnull=True).exists():
+                estudiantes_asignados.update(docente2=docente_id)
+            elif estudiantes_asignados.filter(docente3__isnull=True).exists():
+                estudiantes_asignados.update(docente3=docente_id)
 
+            return JsonResponse({'success': True, 'message': 'Docente asignado correctamente.'})
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+    return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
 
 
 
@@ -613,7 +680,7 @@ def registrar_notas(request, estudiante_id):
 
 
 def siguiente_grado(grado_actual):
-    grados = ['M III', 'G I', 'G II', 'G III', '1°', '2°', '3°', '4°', '5°', '6°']
+    grados = ['I', 'II', 'III', '1°', '2°', '3°', '4°', '5°', '6°']
     grado_actual = grado_actual.strip()  # Eliminar espacios en blanco
     if grado_actual not in grados:
         print(f"El grado {grado_actual} no se encuentra en la lista de grados.")
@@ -653,3 +720,134 @@ def denegar_promocion(request, estudiante_id):
         return JsonResponse({'success': False, 'error': 'Estudiante no encontrado'}, status=404)
 
 
+############################# FIN NOTAS ###################################
+
+@csrf_exempt
+def agregar_estudiante(request):
+    if request.method == 'POST':
+        # Obtener los datos del formulario usando request.POST en lugar de json.loads(request.body)
+        ci = request.POST.get('ci')
+        apellidos_nombres = request.POST.get('apellidos_nombres')
+        grado = request.POST.get('grado')
+        seccion = request.POST.get('seccion')
+        sexo = request.POST.get('sexo')
+        edad = request.POST.get('edad')
+        lugar_nac = request.POST.get('lugar_nac')
+        fecha_nac = request.POST.get('fecha_nac')
+        representante = request.POST.get('representante')
+        ci_representante = request.POST.get('ci_representante')
+        direccion = request.POST.get('direccion')
+        tlf = request.POST.get('tlf')
+        
+        try:
+            # Crear el nuevo estudiante
+            nuevo_estudiante = Estudiante(
+                ci=ci,
+                apellidos_nombres=apellidos_nombres,
+                grado=grado,
+                seccion=seccion,
+                sexo=sexo,
+                edad=edad,
+                lugar_nac=lugar_nac,
+                fecha_nac=fecha_nac,  # Asegúrate de que el formato de la fecha sea correcto (YYYY-MM-DD)
+                representante=representante,
+                ci_representante=ci_representante,
+                direccion=direccion,
+                tlf=tlf
+            )
+            nuevo_estudiante.save()
+
+            return JsonResponse({'success': True})
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    return JsonResponse({'success': False, 'error': 'Método no permitido'})
+
+
+@csrf_exempt
+def modificar_estudiante(request):
+    if request.method == 'POST':
+        # Obtener los datos del formulario usando request.POST en lugar de json.loads(request.body)
+        ci = request.POST.get('ci')
+        apellidos_nombres = request.POST.get('apellidos_nombres')
+        grado = request.POST.get('grado')
+        seccion = request.POST.get('seccion')
+        sexo = request.POST.get('sexo')
+        edad = request.POST.get('edad')
+        lugar_nac = request.POST.get('lugar_nac')
+        fecha_nac = request.POST.get('fecha_nac')
+        representante = request.POST.get('representante')
+        ci_representante = request.POST.get('ci_representante')
+        direccion = request.POST.get('direccion')
+        tlf = request.POST.get('tlf')
+        
+        try:
+            # Busca al estudiante por su ID o CI (dependiendo de cómo quieras buscarlo)
+            estudiante = Estudiante.objects.get(ci=ci)
+            estudiante.apellidos_nombres = apellidos_nombres
+            estudiante.grado = grado
+            estudiante.seccion = seccion
+            estudiante.sexo = sexo
+            estudiante.edad = edad
+            estudiante.lugar_nac = lugar_nac
+            estudiante.fecha_nac = fecha_nac  # Asegúrate de que el formato sea correcto
+            estudiante.representante = representante
+            estudiante.ci_representante = ci_representante
+            estudiante.direccion = direccion
+            estudiante.tlf = tlf
+            estudiante.save()
+
+            return JsonResponse({'success': True})
+
+        except Estudiante.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Estudiante no encontrado'})
+
+    return JsonResponse({'success': False, 'error': 'Método no permitido'})
+
+
+@csrf_exempt
+def eliminar_estudiante(request):
+    if request.method == 'POST':
+        try:
+            estudiante = Estudiante.objects.get(id=request.POST.get('id'))
+            estudiante.delete()
+            return JsonResponse({'success': True})
+        except Estudiante.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Estudiante no encontrado'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    return JsonResponse({'success': False, 'error': 'Método no permitido'})
+
+
+
+def get_estudiante(request, id):
+    try:
+        estudiante = Estudiante.objects.get(id=id)
+        fecha_nac = estudiante.fecha_nac
+
+        # Si fecha_nac ya es una cadena de texto, no necesita formateo
+        if isinstance(fecha_nac, str):
+            fecha_nac_str = fecha_nac
+        else:
+            # Si es un objeto de fecha, lo formateamos
+            fecha_nac_str = fecha_nac.strftime('%Y-%m-%d')
+
+        estudiante_data = {
+            'id': estudiante.id,
+            'ci': estudiante.ci,
+            'apellidos_nombres': estudiante.apellidos_nombres,
+            'grado': estudiante.grado,
+            'seccion': estudiante.seccion,
+            'sexo': estudiante.sexo,
+            'edad': estudiante.edad,
+            'lugar_nac': estudiante.lugar_nac,
+            'fecha_nac': fecha_nac_str,  # Usar el valor formateado
+            'representante': estudiante.representante,
+            'ci_representante': estudiante.ci_representante,
+            'direccion': estudiante.direccion,
+            'tlf': estudiante.tlf,
+        }
+        return JsonResponse({'estudiante': estudiante_data}, status=200)
+    except Estudiante.DoesNotExist:
+        return JsonResponse({'error': 'Estudiante no encontrado'}, status=404)

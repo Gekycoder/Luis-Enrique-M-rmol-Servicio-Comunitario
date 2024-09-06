@@ -35,7 +35,9 @@ class Estudiante(models.Model):
     notas = models.JSONField(default=dict)  # Para almacenar las notas como un diccionario
     promocion_solicitada = models.BooleanField(default=False)
     promocion_aprobada = models.BooleanField(default=False)
-    docente = models.ForeignKey('Usuario', on_delete=models.CASCADE, null=True, blank=True)
+    docente = models.ForeignKey('Usuario', on_delete=models.SET_NULL, null=True, blank=True)
+    docente2 = models.ForeignKey('Usuario', related_name='docente2', on_delete=models.SET_NULL, null=True, blank=True)
+    docente3 = models.ForeignKey('Usuario', related_name='docente3', on_delete=models.SET_NULL, null=True, blank=True)
 
 
     class Meta:
