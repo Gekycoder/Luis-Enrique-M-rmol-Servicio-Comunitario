@@ -214,13 +214,13 @@ document.addEventListener('DOMContentLoaded', () => {
           e.preventDefault();
           currentTab = e.target.id.replace('-link', '');
           showStudentsWidget();
+          
           fetch('/get-estudiantes/')
               .then(response => response.json())
               .then(data => {
                   const studentsTableBody = document.querySelector('#students-table tbody');
                   studentsTableBody.innerHTML = '';
   
-                  // Mostrar los estudiantes que se recibieron desde el backend (ya filtrados)
                   data.estudiantes.forEach(estudiante => {
                       const row = studentsTableBody.insertRow();
                       row.setAttribute('data-student-id', estudiante.id);
@@ -242,10 +242,8 @@ document.addEventListener('DOMContentLoaded', () => {
                       `;
                   });
   
-                  // Inicializar DataTable
                   const studentsTable = initializeDataTable('#students-table');
   
-                  // Filtro de búsqueda
                   document.querySelector('#students-search').addEventListener('keyup', function() {
                       studentsTable.search(this.value).draw();
                   });
@@ -684,5 +682,7 @@ if (document.getElementById('deleteStudentForm')) {
         });
     });
 }
+
+
     
 });

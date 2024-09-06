@@ -18,6 +18,7 @@
         <title>Gestion Administrativa LEM</title>
         <link rel="shortcut icon" type="image/x-icon" href="{% static 'images/lem_icono.ico' %}">
         <meta name="csrf-token" content="{{ csrf_token }}">
+        
     </head>
 
     <body>
@@ -40,48 +41,52 @@
 
                 <div class="sidebar">
 
+                    <!-- Planificación: visible para todos -->
                     <a id="planning" href="/sesion-exitosa/" class="sidebar-link">
                         <span class="material-symbols-outlined">strategy</span>
                         <h3 class="sidebar-menu">Planificación</h3>
                     </a>
-                    
-                    <!-- Menú desplegable de Constancias -->
-                    
-                        <a id="certificates" href="#" class="sidebar-link">
-                            <span class="material-symbols-outlined">verified</span>
-                            <h3 class="sidebar-menu">Constancias</h3>
-                        </a>
-                        <div class="sidebar-submenu" id="certificates-submenu" style="display: none;">
-                            <a id="retiro-link" href="#"><span class="material-symbols-outlined">disabled_by_default</span> Retiro</a>
-                            <a id="estudio-link" href="#"><span class="material-symbols-outlined">square_foot</span>Estudio</a>
-                            <a id="asistencia-link" href="#"><span class="material-symbols-outlined">eda</span>Asistencia</a>
-                            <a id="inscripcion-link" href="#"><span class="material-symbols-outlined">how_to_reg</span>Inscripción</a>
-                        </div>
-                    
-
-                    <a id="students" href="#" class="sidebar-link">
-                        <span class="material-symbols-outlined">school</span>
-                        <h3 class="sidebar-menu">Estudiantes</h3>
+                
+                    <!-- Constancias, Docentes: visible para Administrador, Director, Subdirectora, Secretaria -->
+                   
+                    <a id="certificates" href="#" class="sidebar-link">
+                        <span class="material-symbols-outlined">verified</span>
+                        <h3 class="sidebar-menu">Constancias</h3>
                     </a>
-
-                    <a id="reports" href="#" class="sidebar-link">
-                        <span class="material-symbols-outlined">analytics</span>
-                        <h3 class="sidebar-menu">Boletines</h3>
-                    </a>
-
-                    {% if usuario_rol == 'Director' or usuario_rol == 'Administrador' %}
-
-                    <a id="users" href="#" class="sidebar-link">
-                        <span class="material-symbols-outlined">group</span>
-                        <h3 class="sidebar-menu">Usuarios</h3>
-                    </a>
-
+                    <div class="sidebar-submenu" id="certificates-submenu" style="display: none;">
+                        <a id="retiro-link" href="#"><span class="material-symbols-outlined">disabled_by_default</span> Retiro</a>
+                        <a id="estudio-link" href="#"><span class="material-symbols-outlined">square_foot</span> Estudio</a>
+                        <a id="asistencia-link" href="#"><span class="material-symbols-outlined">eda</span> Asistencia</a>
+                        <a id="inscripcion-link" href="#"><span class="material-symbols-outlined">how_to_reg</span> Inscripción</a>
+                    </div>
+                
                     <a id="assignTeacher" href="#" class="sidebar-link">
                         <span class="material-symbols-outlined">school</span>
                         <h3 class="sidebar-menu">Docentes</h3>
                     </a>
-
-                    <!-- Añadir, editar y eliminar usuarios -->
+                    
+                
+                    <!-- Estudiantes: visible para todos -->
+                    <a id="students" href="#" class="sidebar-link">
+                        <span class="material-symbols-outlined">school</span>
+                        <h3 class="sidebar-menu">Estudiantes</h3>
+                    </a>
+                
+                    <!-- Boletines: visible para Administrador, Director, Docentes, otros docentes -->
+                    
+                    <a id="reports" href="#" class="sidebar-link">
+                        <span class="material-symbols-outlined">analytics</span>
+                        <h3 class="sidebar-menu">Boletines</h3>
+                    </a>
+                   
+                
+                    <!-- Usuarios y gestión de usuarios: solo visible para Administrador, Director -->
+                    
+                    <a id="users" href="#" class="sidebar-link">
+                        <span class="material-symbols-outlined">group</span>
+                        <h3 class="sidebar-menu">Usuarios</h3>
+                    </a>
+                
                     <a id="addUser" href="#" class="sidebar-link">
                         <span class="material-symbols-outlined">person_add</span>
                         <h3 class="sidebar-menu">Agregar Usuario</h3>
@@ -94,8 +99,10 @@
                         <span class="material-symbols-outlined">delete</span>
                         <h3 class="sidebar-menu">Eliminar Usuario</h3>
                     </a>
-
-                    <!-- Añadir, editar y eliminar estudiantes -->
+                    
+                
+                    <!-- Gestión de estudiantes: visible para Administrador, Director, Subdirectora, Secretaria -->
+                    
                     <a id="addStudent" href="#" class="sidebar-link">
                         <span class="material-symbols-outlined">person_add</span>
                         <h3 class="sidebar-menu">Agregar Estudiante</h3>
@@ -108,17 +115,17 @@
                         <span class="material-symbols-outlined">delete</span>
                         <h3 class="sidebar-menu">Eliminar Estudiante</h3>
                     </a>
-                    {% endif %}
-
-                    
-                    <!-- Fin de Añadir, editar y eliminar usuarios -->
-
+                   
+                
+                    <!-- Opción de Salir: visible para todos -->
                     <a id="logout" href="#" class="sidebar-link">
                         <span class="material-symbols-outlined">logout</span>
                         <h3 class="sidebar-menu">Salir</h3>
                     </a>
                     
                 </div>
+                
+                
             </aside>
             <!-- End of Sidebar Section -->
 

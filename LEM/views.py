@@ -74,8 +74,10 @@ def sesion_exitosa(request):
             'usuario_nombre': user.usuario,
             'usuario_rol': user.rol,
             'profile_photo_url': f"{settings.MEDIA_URL}{user.profile_photo}" if user.profile_photo else None,
-            'is_admin_or_director': user.rol in ['Administrador', 'Director'],
-            'is_docente': user.rol == 'Docente'  # Verifica si el usuario es docente
+            'is_admin_or_director': user.rol in ['Administrador', 'Director', 'Subdirectora'],
+            'is_docente': user.rol == 'Docente',  # Verifica si el usuario es docente
+            'is_secretaria': user.rol == 'Secretaria',
+            'is_otros_docentes': user.rol in ['Docente_Folklore', 'Docente_Educ._Fisica', 'Docente_C.B.I.T']
         }
 
         return render(request, 'sesion_exitosa.html', contexto)
@@ -201,40 +203,46 @@ def eliminar_usuario(request):
 @csrf_exempt
 def logout_view(request):
     if request.method == 'POST':
+        # Obtener información del usuario logueado para depuración
+        user_data = request.session.get('user_data')
+        if user_data:
+            print(f"Cierre de sesión solicitado por: {user_data.get('user_name')} (Rol: {user_data.get('user_role')})")
+
         # Eliminar el token de la sesión
         if 'user_token' in request.session:
             del request.session['user_token']
         if 'user_data' in request.session:
             del request.session['user_data']
-        return redirect('login')
+        
+        print("Cierre de sesión exitoso.")  # Depuración para confirmar que el cierre de sesión es exitoso
+        return redirect('login')  # Redirigir al login después de cerrar sesión
+    
     return JsonResponse({'error': 'Método no permitido'}, status=405)
+
 
 
 @csrf_exempt
 def sesion_exitosa(request):
     user_data = request.session.get('user_data')
-
-    # Redirigir al login si no hay datos de usuario
+    
     if not user_data:
         return redirect('login')
 
     try:
         user = Usuario.objects.get(id=user_data['user_id'])
 
-        # Preparar los datos que pasarán al frontend
+        # Pasar el rol del usuario al contexto y la URL de la foto de perfil
         contexto = {
-            'usuario_nombre': user.usuario,  # Nombre del usuario logueado
-            'usuario_rol': user.rol,  # Rol del usuario
-            'usuario_id': user.id,  # ID del usuario logueado
-            'profile_photo_url': f"{settings.MEDIA_URL}{user.profile_photo}" if user.profile_photo else None,  # Foto de perfil
-            'is_admin_or_director': user.rol in ['Administrador', 'Director'],  # Verifica si es admin o director
-            'is_docente': user.rol == 'Docente',  # Verifica si el usuario es un docente
+            'usuario_nombre': user.usuario,
+            'usuario_rol': user.rol,
+            'profile_photo_url': f"{settings.MEDIA_URL}{user.profile_photo}" if user.profile_photo else None,
+            'is_admin_or_director': user.rol in ['Administrador', 'Director', 'Subdirectora'],
+            'is_secretaria': user.rol == 'Secretaria',
+            
         }
 
         return render(request, 'sesion_exitosa.html', contexto)
-    
     except Usuario.DoesNotExist:
-        # Redirigir al login si el usuario no existe
         return redirect('login')
 
 
@@ -278,34 +286,29 @@ def get_usuario(request, user_id):
 
 
 
+@csrf_exempt
 def get_estudiantes(request):
-    # Obtener el usuario que está logueado
     user_data = request.session.get('user_data')
-    if not user_data:
-        return JsonResponse({'error': 'No hay usuario logueado'}, status=400)
+    user = Usuario.objects.get(id=user_data['user_id'])
 
-    try:
-        user = Usuario.objects.get(id=user_data['user_id'])
+    if user.rol in ['Subdirectora', 'Secretaria', 'Director', 'Coordinadora', 'Administrador', 'Docente Folklore', 'Docente Educ. Fisica', 'Docente C.B.I.T']:
+        # Estos roles ven a todos los estudiantes
+        estudiantes = Estudiante.objects.all().select_related('docente').values(
+            'id', 'ci', 'apellidos_nombres', 'grado', 'seccion', 'sexo', 'edad',
+            'lugar_nac', 'fecha_nac', 'representante', 'ci_representante',
+            'direccion', 'tlf', 'notas', 'docente_id', 'docente2_id', 'docente3_id'
+        )
+    elif user.rol == 'Docente':
+        # Los docentes solo ven los estudiantes asignados a ellos
+        estudiantes = Estudiante.objects.filter(
+            Q(docente_id=user.id) | Q(docente2_id=user.id) | Q(docente3_id=user.id)
+        ).select_related('docente').values(
+            'id', 'ci', 'apellidos_nombres', 'grado', 'seccion', 'sexo', 'edad',
+            'lugar_nac', 'fecha_nac', 'representante', 'ci_representante',
+            'direccion', 'tlf', 'notas', 'docente_id', 'docente2_id', 'docente3_id'
+        )
 
-        # Filtrar los estudiantes que tienen asignado al docente logueado
-        if user.rol == 'Docente':
-            estudiantes = Estudiante.objects.filter(
-                Q(docente=user.id) | Q(docente2=user.id) | Q(docente3=user.id)
-            ).select_related('docente').values(
-                'id', 'ci', 'apellidos_nombres', 'grado', 'seccion', 'sexo', 'edad', 'lugar_nac',
-                'fecha_nac', 'representante', 'ci_representante', 'direccion', 'tlf', 'notas',
-                'docente__nombres', 'docente__apellidos', 'promocion_aprobada', 'promocion_solicitada'
-            )
-        else:
-            # Si el usuario no es docente, devolver un error o un resultado vacío
-            return JsonResponse({'error': 'Solo los docentes pueden ver estudiantes asignados'}, status=403)
-
-        # Convertir a lista y enviar la respuesta en JSON
-        estudiantes_list = list(estudiantes)
-        return JsonResponse({'estudiantes': estudiantes_list})
-    
-    except Usuario.DoesNotExist:
-        return JsonResponse({'error': 'Usuario no encontrado'}, status=400)
+    return JsonResponse({'estudiantes': list(estudiantes)})
 
 
 
