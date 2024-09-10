@@ -224,7 +224,7 @@ def logout_view(request):
 @csrf_exempt
 def sesion_exitosa(request):
     user_data = request.session.get('user_data')
-    
+
     if not user_data:
         return redirect('login')
 
@@ -236,14 +236,26 @@ def sesion_exitosa(request):
             'usuario_nombre': user.usuario,
             'usuario_rol': user.rol,
             'profile_photo_url': f"{settings.MEDIA_URL}{user.profile_photo}" if user.profile_photo else None,
-            'is_admin_or_director': user.rol in ['Administrador', 'Director', 'Subdirectora'],
-            'is_secretaria': user.rol == 'Secretaria',
             
+            # Administrador, Director, Subdirectora roles
+            'is_admin_or_director': user.rol in ['Administrador', 'Director', 'Subdirectora'],
+            
+            # Secretaria rol
+            'is_secretaria': user.rol == 'Secretaria',
+
+            # Rol de "Docente"
+            'is_docente': user.rol == 'Docente',
+
+            # Roles adicionales (Docente Folklore, Docente Educ. Fisica, Coordinadora, Docente C.B.I.T)
+            'is_otros_docentes': user.rol in ['Docente Folklore', 'Docente Educ. Fisica', 'Coordinadora', 'Docente C.B.I.T'],
+            # Agregar una variable para controlar la visibilidad del botón de "Salir"
+            'show_logout': True,
         }
 
         return render(request, 'sesion_exitosa.html', contexto)
     except Usuario.DoesNotExist:
         return redirect('login')
+
 
 
 # Para obtener la lista de usuarios dentro de la base de datos

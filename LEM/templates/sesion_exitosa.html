@@ -46,9 +46,9 @@
                         <span class="material-symbols-outlined">strategy</span>
                         <h3 class="sidebar-menu">Planificación</h3>
                     </a>
-                
+
                     <!-- Constancias, Docentes: visible para Administrador, Director, Subdirectora, Secretaria -->
-                   
+                    {% if is_admin_or_director or is_secretaria %}
                     <a id="certificates" href="#" class="sidebar-link">
                         <span class="material-symbols-outlined">verified</span>
                         <h3 class="sidebar-menu">Constancias</h3>
@@ -59,34 +59,33 @@
                         <a id="asistencia-link" href="#"><span class="material-symbols-outlined">eda</span> Asistencia</a>
                         <a id="inscripcion-link" href="#"><span class="material-symbols-outlined">how_to_reg</span> Inscripción</a>
                     </div>
-                
+
                     <a id="assignTeacher" href="#" class="sidebar-link">
                         <span class="material-symbols-outlined">school</span>
                         <h3 class="sidebar-menu">Docentes</h3>
                     </a>
-                    
-                
+                    {% endif %}
+
                     <!-- Estudiantes: visible para todos -->
                     <a id="students" href="#" class="sidebar-link">
                         <span class="material-symbols-outlined">school</span>
                         <h3 class="sidebar-menu">Estudiantes</h3>
                     </a>
-                
-                    <!-- Boletines: visible para Administrador, Director, Docentes, otros docentes -->
-                    
+
+                    <!-- Boletines: visible para Administrador, Director, Docente, otros docentes -->
+                    {% if is_admin_or_director or is_docente or is_otros_docentes %}
                     <a id="reports" href="#" class="sidebar-link">
                         <span class="material-symbols-outlined">analytics</span>
                         <h3 class="sidebar-menu">Boletines</h3>
                     </a>
-                   
-                
+                    {% endif %}
+
                     <!-- Usuarios y gestión de usuarios: solo visible para Administrador, Director -->
-                    
+                    {% if is_admin_or_director %}
                     <a id="users" href="#" class="sidebar-link">
                         <span class="material-symbols-outlined">group</span>
                         <h3 class="sidebar-menu">Usuarios</h3>
                     </a>
-                
                     <a id="addUser" href="#" class="sidebar-link">
                         <span class="material-symbols-outlined">person_add</span>
                         <h3 class="sidebar-menu">Agregar Usuario</h3>
@@ -99,10 +98,10 @@
                         <span class="material-symbols-outlined">delete</span>
                         <h3 class="sidebar-menu">Eliminar Usuario</h3>
                     </a>
-                    
-                
+                    {% endif %}
+
                     <!-- Gestión de estudiantes: visible para Administrador, Director, Subdirectora, Secretaria -->
-                    
+                    {% if is_admin_or_director or is_secretaria %}
                     <a id="addStudent" href="#" class="sidebar-link">
                         <span class="material-symbols-outlined">person_add</span>
                         <h3 class="sidebar-menu">Agregar Estudiante</h3>
@@ -115,13 +114,16 @@
                         <span class="material-symbols-outlined">delete</span>
                         <h3 class="sidebar-menu">Eliminar Estudiante</h3>
                     </a>
-                   
-                
+                    {% endif %}
+
                     <!-- Opción de Salir: visible para todos -->
-                    <a id="logout" href="#" class="sidebar-link">
-                        <span class="material-symbols-outlined">logout</span>
-                        <h3 class="sidebar-menu">Salir</h3>
-                    </a>
+                    <form id="logout" action="{% url 'logout' %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="sidebar-link">
+                            <span class="material-symbols-outlined">logout</span>
+                            <h3 class="sidebar-menu">Salir</h3>
+                        </button>
+                    </form>
                     
                 </div>
                 
