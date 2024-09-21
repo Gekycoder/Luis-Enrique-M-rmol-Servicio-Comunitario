@@ -114,6 +114,11 @@ form.sign-in-form {
   justify-content: center;
 }
 
+img {
+  width: 335px;
+  height: auto;
+}
+
 .social-icon {
   height: 46px;
   width: 46px;

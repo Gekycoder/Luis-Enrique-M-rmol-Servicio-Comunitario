@@ -1,330 +1,413 @@
-document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM content loaded"); // Depuración inicial
+// notas.js
 
-    // Configuración de la traducción del DataTable
-    const spanishTranslation = {
-        // Configuración de la traducción del DataTable
-    };
-
-    // Inicialización de DataTable con configuración personalizada
-    function initializeDataTable(tableSelector) {
-        console.log("Initializing DataTable"); // Depuración
-        return $(tableSelector).DataTable({
-            language: spanishTranslation,
-            paging: true,
-            lengthChange: true,
-            searching: true,
-            ordering: true,
-            info: true,
-            autoWidth: false,
-            responsive: true,
-            initComplete: function() {
-                // Agregar filtros en las cabeceras de columnas de Grado y Sección
-                this.api().columns([3, 4]).every(function() { // Índices de columna 3: Grado, 4: Sección
-                    const column = this;
-                    const select = $('<select><option value="">Filtrar</option></select>')
-                        .appendTo($(column.header()).empty())
-                        .on('change', function() {
-                            const val = $.fn.dataTable.util.escapeRegex($(this).val());
-                            column
-                                .search(val ? '^' + val + '$' : '', true, false)
-                                .draw();
-                        });
-
-                    // Poblar el select con valores únicos de la columna
-                    column.data().unique().sort().each(function(d, j) {
-                        select.append('<option value="' + d + '">' + d + '</option>');
-                    });
-                });
-            }
-        });
-    }
-
-    // Variables para elementos del DOM
-    const studentsLink = document.getElementById('students');
+(function() {
+    // Selección de elementos del DOM
+    const studentsLink = document.getElementById('studentsLink'); // Asegúrate de que el ID coincide con tu HTML
     const studentsWidget = document.getElementById('students-widget');
-    const notasModal = document.getElementById('notasModal');
-    const closeModal = notasModal.querySelector('.close');
-    const notasForm = document.getElementById('notasForm');
-    const studentName = document.getElementById('studentName');
-    const notasInput = document.getElementById('notasInput');
-    let currentStudentId = null;
 
-    const promotionModal = document.getElementById('promotionModal');
-    const closePromotionModal = promotionModal?.querySelector('.close');
-    const approvePromotionBtn = document.getElementById('approvePromotionBtn');
-    const denyPromotionBtn = document.getElementById('denyPromotionBtn');
-
-    let studentsTable = null; // Variable para el DataTable de la tabla de estudiantes
-
-    // Función para ocultar todos los widgets
-    function hideAllWidgets() {
-        console.log("Hiding all widgets"); // Depuración
-        const widgets = document.querySelectorAll('.widget');
-        widgets.forEach(widget => widget.style.display = 'none');
-    }
+    if (studentsWidget) studentsWidget.style.display = 'none';
 
     // Función para mostrar el widget de estudiantes
-    function showStudentsWidget() {
-        console.log("Showing students widget"); // Depuración
-        hideAllWidgets();
+    const showStudentsWidget = () => {
+        hideAllWidgets(); // Función definida en main.js
         if (studentsWidget) studentsWidget.style.display = 'block';
-    }
+        initializeStudentsWidget(); // Inicializa el widget de estudiantes
+    };
 
-    // Función para abrir el modal de notas
-    function openModal(id, name, notas) {
-        console.log(`Opening modal for student ${name} with notes: ${notas}`); // Depuración
-        currentStudentId = id;
-        studentName.textContent = `Notas de ${name}`;
-    
-        // Mostrar las notas si existen, o el placeholder si no
-        if (notas) {
-            notasInput.value = notas;  // Mostrar la nota existente
-        } else {
-            notasInput.value = '';  // Dejar el campo vacío si no hay notas
-        }
-    
-        // Permitir la edición del campo para todos los roles
-        notasInput.removeAttribute('readonly');
-        
-        notasModal.style.display = 'block';
-    }
-    
-
-    // Función para cerrar el modal de notas
-    function closeModalFunc() {
-        console.log("Closing modal"); // Depuración
-        notasModal.style.display = 'none';
-        currentStudentId = null;
-    }
-
-    // Asignar eventos de cierre a los modales
-    closeModal.addEventListener('click', closeModalFunc);
-    window.addEventListener('click', (event) => {
-        if (event.target === notasModal) {
-            closeModalFunc();
-        }
-    });
-
-    if (closePromotionModal) {
-        closePromotionModal.addEventListener('click', () => {
-            console.log("Closing promotion modal"); // Depuración
-            promotionModal.style.display = 'none';
-        });
-
-        window.addEventListener('click', (event) => {
-            if (event.target === promotionModal) {
-                promotionModal.style.display = 'none';
-            }
-        });
-    }
-
-    // Función para manejar el envío del formulario de notas
-    notasForm.addEventListener('submit', (event) => {
-        event.preventDefault();
-        if (!currentStudentId) return;
-
-        const notas = notasInput.value.trim();
-
-        fetch(`/registrar-notas/${currentStudentId}/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value
-            },
-            body: JSON.stringify({ notas: notas })
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log("Notas registradas", data); // Depuración
-            if (data.success) {
-                alert('Notas registradas correctamente.');
-                closeModalFunc();
-                fetchStudentsData(); // Volver a cargar la tabla de estudiantes
-            } else {
-                alert('Hubo un error al registrar las notas.');
-            }
-        })
-        .catch(error => {
-            console.error('Error al registrar las notas:', error); // Mostrar error en consola
-        });
-    }); 
-
-    // Código para gestionar roles
-    const isAdminOrDirector = document.getElementById('config').dataset.isAdminOrDirector === 'true';
-    const isDocente = document.getElementById('config').dataset.isDocente === 'true';
-
-    // Función para obtener y cargar los datos de los estudiantes
-    function fetchStudentsData() {
-        fetch('/get-estudiantes/')
-            .then(response => response.json())
-            .then(data => {
-                const studentsTableBody = document.querySelector('#students-table tbody');
-                studentsTableBody.innerHTML = '';
-    
-                data.estudiantes.forEach(estudiante => {
-                    const row = studentsTableBody.insertRow();
-                    row.setAttribute('data-student-id', estudiante.id);
-                    let rowContent = `
-                        <td>${estudiante.id}</td>
-                        <td>${estudiante.ci}</td>
-                        <td>${estudiante.apellidos_nombres}</td>
-                        <td>${estudiante.grado}</td>
-                        <td>${estudiante.seccion}</td>
-                        <td>${estudiante.sexo}</td>
-                        <td>${estudiante.edad}</td>
-                        <td>${estudiante.lugar_nac}</td>
-                        <td>${estudiante.fecha_nac}</td>
-                        <td>${estudiante.representante}</td>
-                        <td>${estudiante.ci_representante}</td>
-                        <td>${estudiante.direccion}</td>
-                        <td>${estudiante.tlf}</td>
-                        <td>
-                            <button class="ver-notas" data-id="${estudiante.id}" data-name="${estudiante.apellidos_nombres}" data-notas="${estudiante.notas}">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </td>`;
-    
-                        if (isAdminOrDirector) {
-                            console.log(`Estudiante: ${estudiante.apellidos_nombres}, Promoción solicitada: ${estudiante.promocion_solicitada}`); // Depuración
-                            const bellColor = estudiante.promocion_solicitada == 1 ? 'red' : 'gray';
-                            rowContent += `
-                            <td>
-                                <button class="review-promotion" 
-                                        data-id="${estudiante.id}" 
-                                        data-name="${estudiante.apellidos_nombres}" 
-                                        data-grade="${estudiante.grado}" 
-                                        data-docente="${estudiante.docente_nombre_completo}" 
-                                        data-notas="${estudiante.notas}" 
-                                        style="background: none; border: none; cursor: pointer;">
-                                    <i class="fas fa-bell" style="color: ${bellColor};"></i>
-                                </button>
-                            </td>`;
-                        }
-                        
-                        
-                    row.innerHTML = rowContent;
-                });
-    
-                // Inicializar o actualizar DataTable
-                if (studentsTable === null) {
-                    studentsTable = initializeDataTable('#students-table');
-                } else {
-                    studentsTable.clear().rows.add(data.estudiantes).draw();
-                }
-    
-                // Asignar eventos de búsqueda a la tabla
-                document.querySelector('#students-search').addEventListener('keyup', function() {
-                    studentsTable.search(this.value).draw();
-                });
-
-                // Delegación de eventos para "ver-notas"
-                $('#students-table tbody').on('click', '.ver-notas', function() {
-                    const studentId = $(this).data('id');
-                    const studentName = $(this).data('name');
-                    const studentNotas = $(this).data('notas');
-                    openModal(studentId, studentName, studentNotas);
-                });
-    
-                // Delegación de eventos para "review-promotion", solo si es admin o director
-                if (isAdminOrDirector) {
-                    $('#students-table tbody').on('click', '.review-promotion', function() {
-                        const studentId = $(this).data('id');
-                        const studentName = $(this).data('name');
-                        const studentGrade = $(this).data('grade');
-                        const studentNotas = $(this).data('notas');
-                        const docenteName = $(this).data('docente');
-                        openPromotionModal(studentId, studentName, studentGrade, docenteName, studentNotas);
-                    });
-                }
-            })
-            .catch(error => console.error('Error fetching students:', error));
-    }
-    
-
-    // Evento clic en el enlace de estudiantes
+    // Evento para mostrar el widget de estudiantes al hacer clic en el enlace correspondiente
     if (studentsLink) {
         studentsLink.addEventListener('click', (e) => {
             e.preventDefault();
-            console.log('Clic en Estudiantes detectado'); // Depuración
             showStudentsWidget();
-            fetchStudentsData(); // Cargar datos de estudiantes al hacer clic en "Estudiantes"
         });
     }
 
-    // Función para abrir el modal de promoción
-    function openPromotionModal(id, name, grade, docenteName, notas) {
-        console.log(`Opening promotion modal for student ${name} with grade: ${grade}`); // Depuración
-        currentStudentId = id;
-    
-        // Obtener el elemento modal
+    // Inicialización del widget de estudiantes
+    let studentsWidgetInitialized = false;
+
+    function initializeStudentsWidget() {
+        if (studentsWidgetInitialized) {
+            // Ya inicializado, no hacemos nada
+            return;
+        }
+        studentsWidgetInitialized = true;
+
+        // Variables para elementos del DOM
+        const notasModal = document.getElementById('notasModal');
+        const closeModal = notasModal.querySelector('.close');
+        const notasForm = document.getElementById('notasForm');
+        const studentNameElement = document.getElementById('studentName');
+        const notasInput = document.getElementById('notasInput');
+        let currentStudentId = null;
+
         const promotionModal = document.getElementById('promotionModal');
-    
-        // Obtener los campos donde se mostrará la información
-        const studentNameElement = document.getElementById('promotionStudentName');
-        const studentGradeElement = document.getElementById('promotionStudentGrade');
-        const docenteNameElement = document.getElementById('promotionDocente');
-        const notasElement = document.getElementById('promotionNotas');
-    
-        // Asignar la información al modal
-        studentNameElement.textContent = `Estudiante: ${name}`;
-        studentGradeElement.textContent = `Grado Actual: ${grade}`;
-        docenteNameElement.textContent = `Docente: ${docenteName || 'N/A'}`;
-        notasElement.textContent = `Notas: ${notas || 'No disponibles'}`;
-    
-        // Mostrar el modal
-        promotionModal.style.display = 'block';
-    }
+        const closePromotionModal = promotionModal?.querySelector('.close');
+        const approvePromotionBtn = document.getElementById('approvePromotionBtn');
+        const denyPromotionBtn = document.getElementById('denyPromotionBtn');
 
-    // Evento para aprobar la promoción
-    if (approvePromotionBtn) {
-        approvePromotionBtn.addEventListener('click', () => {
+        // Obtener información de roles
+        const configElement = document.getElementById('config');
+        const isAdminOrDirector = configElement.dataset.isAdminOrDirector === 'true';
+        const isDocente = configElement.dataset.isDocente === 'true';
+
+        // Asignar eventos de cierre a los modales
+        closeModal.addEventListener('click', closeModalFunc);
+        window.addEventListener('click', (event) => {
+            if (event.target === notasModal) {
+                closeModalFunc();
+            }
+        });
+
+        if (closePromotionModal) {
+            closePromotionModal.addEventListener('click', () => {
+                promotionModal.style.display = 'none';
+            });
+
+            window.addEventListener('click', (event) => {
+                if (event.target === promotionModal) {
+                    promotionModal.style.display = 'none';
+                }
+            });
+        }
+
+        // Función para escapar caracteres especiales en HTML
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, '&amp;')
+                       .replace(/</g, '&lt;')
+                       .replace(/>/g, '&gt;')
+                       .replace(/"/g, '&quot;')
+                       .replace(/'/g, '&#039;');
+        }
+
+        // Objeto para almacenar los docentes
+        let docentesDict = {};
+
+        // Función para obtener los datos de los docentes
+        function fetchDocentesData() {
+            fetch('/get-docentes/')
+                .then(response => response.json())
+                .then(data => {
+                    data.docentes.forEach(docente => {
+                        docentesDict[docente.id] = `${docente.nombres} ${docente.apellidos}`;
+                    });
+                    // Después de obtener los docentes, obtenemos los estudiantes
+                    fetchStudentsData();
+                })
+                .catch(error => console.error('Error al obtener docentes:', error));
+        }
+
+        // Evento para manejar el envío del formulario de notas
+        notasForm.addEventListener('submit', (event) => {
+            event.preventDefault();
             if (!currentStudentId) return;
 
-            fetch(`/aprobar-promocion/${currentStudentId}/`, {
+            const notas = notasInput.value.trim();
+
+            fetch(`/registrar-notas/${currentStudentId}/`, {
                 method: 'POST',
                 headers: {
+                    'Content-Type': 'application/json',
                     'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value
-                }
+                },
+                body: JSON.stringify({ notas: notas })
             })
             .then(response => response.json())
             .then(data => {
-                console.log("Promoción aprobada:", data); // Depuración
                 if (data.success) {
-                    alert('Promoción aprobada.');
-                    promotionModal.style.display = 'none';
-                    fetchStudentsData(); // Actualizar la lista de estudiantes
+                    alert('Notas registradas correctamente.');
+                    closeModalFunc();
+                    fetchStudentsData(); // Volver a cargar la tabla de estudiantes
                 } else {
-                    alert('Hubo un error al aprobar la promoción.');
+                    alert('Hubo un error al registrar las notas.');
                 }
             })
-            .catch(error => console.error('Error al aprobar la promoción:', error));
-        });
-    }
+            .catch(error => {
+                console.error('Error al registrar las notas:', error);
+            });
+        }); 
 
-    // Evento para denegar la promoción
-    if (denyPromotionBtn) {
-        denyPromotionBtn.addEventListener('click', () => {
-            if (!currentStudentId) return;
+        // Función para cerrar el modal de notas
+        function closeModalFunc() {
+            notasModal.style.display = 'none';
+            currentStudentId = null;
+        }
 
-            fetch(`/denegar-promocion/${currentStudentId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value
+        // Función para abrir el modal de notas
+        function openModal(id, name, notas) {
+            currentStudentId = id;
+            studentNameElement.textContent = `Notas de ${name}`;
+            
+            let notaValor = '';
+
+            if (notas && notas.notas) {
+                notaValor = notas.notas;
+            }
+
+            notasInput.value = notaValor;
+            notasInput.placeholder = 'Ingrese las notas (A-E)';
+
+            // Permitir la edición del campo
+            notasInput.removeAttribute('readonly');
+            notasModal.style.display = 'block';
+        }
+
+        // Función para abrir el modal de promoción
+        function openPromotionModal(id, name, grade, docentesNombres, notas) {
+            currentStudentId = id;
+
+            let notaValor = '';
+
+            if (notas && notas.notas) {
+                notaValor = notas.notas;
+            }
+
+            // Construir el texto de los docentes
+            let docentesTexto = 'N/A';
+            if (docentesNombres.length > 0) {
+                docentesTexto = docentesNombres.join(', ');
+            }
+
+            // Asignar la información al modal
+            document.getElementById('promotionStudentName').textContent = `Estudiante: ${name}`;
+            document.getElementById('promotionStudentGrade').textContent = `Grado Actual: ${grade}`;
+            document.getElementById('promotionDocente').textContent = `Docente(s): ${docentesTexto}`;
+            document.getElementById('promotionNotas').textContent = `Notas: ${notaValor || 'No disponibles'}`;
+
+            // Mostrar el modal
+            promotionModal.style.display = 'block';
+        }
+
+        // Almacenamiento de los estudiantes para facilitar el filtrado
+        let estudiantesData = [];
+        let selectedGrade = ''; // Grado seleccionado en el dropdown
+
+        // Función para obtener y cargar los datos de los estudiantes
+        function fetchStudentsData() {
+            fetch('/get-estudiantes/')
+                .then(response => response.json())
+                .then(data => {
+                    estudiantesData = data.estudiantes; // Guardamos los datos para el filtrado
+                    renderStudentsTable(estudiantesData);
+                    populateGradeDropdown(estudiantesData); // Rellenar el dropdown de grados
+                })
+                .catch(error => console.error('Error al obtener estudiantes:', error));
+        }
+
+        // Función para renderizar la tabla de estudiantes
+        function renderStudentsTable(estudiantes) {
+            const studentsTableBody = document.querySelector('#students-table tbody');
+            studentsTableBody.innerHTML = '';
+
+            estudiantes.forEach(estudiante => {
+                const row = document.createElement('tr');
+                row.setAttribute('data-student-id', estudiante.id);
+
+                // Escapar nombre
+                const escapedName = escapeHtml(estudiante.apellidos_nombres);
+
+                // Obtener los nombres de los docentes asignados
+                const docentesNombres = [];
+                if (estudiante.docente_id && docentesDict[estudiante.docente_id]) {
+                    docentesNombres.push(docentesDict[estudiante.docente_id]);
                 }
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log("Promoción denegada:", data); // Depuración
-                if (data.success) {
-                    alert('Promoción denegada.');
-                    promotionModal.style.display = 'none';
-                    fetchStudentsData(); // Actualizar la lista de estudiantes
-                } else {
-                    alert('Hubo un error al denegar la promoción.');
+                if (estudiante.docente2_id && docentesDict[estudiante.docente2_id]) {
+                    docentesNombres.push(docentesDict[estudiante.docente2_id]);
                 }
-            })
-            .catch(error => console.error('Error al denegar la promoción:', error));
-        });
+                if (estudiante.docente3_id && docentesDict[estudiante.docente3_id]) {
+                    docentesNombres.push(docentesDict[estudiante.docente3_id]);
+                }
+
+                let rowContent = `
+                <td>${estudiante.id}</td>
+                <td>${estudiante.ci}</td>
+                <td>${escapedName}</td>
+                <td>${estudiante.grado}</td>
+                <td>${estudiante.seccion}</td>
+                <td>${estudiante.sexo}</td>
+                <td>${estudiante.edad}</td>
+                <td>${estudiante.lugar_nac}</td>
+                <td>${estudiante.fecha_nac}</td>
+                <td>${estudiante.representante}</td>
+                <td>${estudiante.ci_representante}</td>
+                <td>${estudiante.direccion}</td>
+                <td>${estudiante.tlf}</td>
+                <td>
+                    <button class="ver-notas" data-id="${estudiante.id}" data-name="${escapedName}">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>`;
+
+                if (isAdminOrDirector) {
+                    console.log(`Estudiante: ${estudiante.apellidos_nombres}, Promoción solicitada: ${estudiante.promocion_solicitada}`);
+                    const bellColor = estudiante.promocion_solicitada == 1 ? 'red' : 'gray';
+
+                    // Preparar los nombres de los docentes para el modal
+                    const docentesNombresStr = docentesNombres.join(', ');
+                    const escapedDocentesNombres = escapeHtml(docentesNombresStr);
+
+                    rowContent += `
+                    <td>
+                        <button class="review-promotion" 
+                                data-id="${estudiante.id}" 
+                                data-name="${escapedName}" 
+                                data-grade="${estudiante.grado}" 
+                                data-docentes="${escapedDocentesNombres}" 
+                                style="background: none; border: none; cursor: pointer;">
+                            <i class="fas fa-bell" style="color: ${bellColor};"></i>
+                        </button>
+                    </td>`;
+                }
+
+                row.innerHTML = rowContent;
+                // Añadir el objeto estudiante completo al dataset de la fila
+                row.dataset.estudiante = JSON.stringify(estudiante);
+                studentsTableBody.appendChild(row);
+            });
+
+            // Configurar eventos después de renderizar la tabla
+            setupEventListeners();
+        }
+
+        // Función para configurar la búsqueda y los filtros
+        function setupSearchAndFilters() {
+            const searchInput = document.getElementById('students-search');
+            const gradeDropdown = document.getElementById('filter-grade');
+            let searchType = 'nombre';
+
+            // Configuración del dropdown de grado
+            gradeDropdown.addEventListener('change', function() {
+                selectedGrade = gradeDropdown.value;
+                filterAndRenderStudents(); // Filtrar estudiantes por nombre y grado
+            });
+
+            searchInput.addEventListener('input', function() {
+                filterAndRenderStudents(); // Filtrar estudiantes por nombre y grado
+            });
+        }
+
+        // Función para filtrar y renderizar los estudiantes según el grado y nombre
+        function filterAndRenderStudents() {
+            const searchInput = document.getElementById('students-search').value.toLowerCase();
+            let filteredStudents = estudiantesData;
+
+            // Filtrar por grado si se ha seleccionado uno
+            if (selectedGrade) {
+                filteredStudents = filteredStudents.filter(estudiante =>
+                    estudiante.grado.toLowerCase() === selectedGrade.toLowerCase()
+                );
+            }
+
+            // Filtrar por nombre
+            if (searchInput) {
+                filteredStudents = filteredStudents.filter(estudiante =>
+                    estudiante.apellidos_nombres.toLowerCase().includes(searchInput)
+                );
+            }
+
+            // Renderizar los estudiantes filtrados
+            renderStudentsTable(filteredStudents);
+        }
+
+        // Función para llenar el dropdown con los grados disponibles
+        function populateGradeDropdown(estudiantes) {
+            const gradeDropdown = document.getElementById('filter-grade');
+            const uniqueGrades = [...new Set(estudiantes.map(estudiante => estudiante.grado))]; // Grados únicos
+            gradeDropdown.innerHTML = '<option value="">Todos los Grados</option>'; // Opción por defecto
+
+            uniqueGrades.forEach(grado => {
+                const option = document.createElement('option');
+                option.value = grado;
+                option.textContent = grado;
+                gradeDropdown.appendChild(option);
+            });
+        }
+
+        // Función para configurar los eventos de los botones en la tabla
+        function setupEventListeners() {
+            const studentsTableBody = document.querySelector('#students-table tbody');
+
+            studentsTableBody.addEventListener('click', function(event) {
+                const target = event.target;
+                if (target.classList.contains('ver-notas') || target.closest('.ver-notas')) {
+                    const button = target.closest('.ver-notas');
+                    const studentId = button.getAttribute('data-id');
+                    const studentName = button.getAttribute('data-name');
+                    const row = button.closest('tr');
+                    const estudianteData = JSON.parse(row.dataset.estudiante);
+                    const studentNotas = estudianteData.notas || null;
+                    openModal(studentId, studentName, studentNotas);
+                } else if (target.classList.contains('review-promotion') || target.closest('.review-promotion')) {
+                    if (isAdminOrDirector) {
+                        const button = target.closest('.review-promotion');
+                        const studentId = button.getAttribute('data-id');
+                        const studentName = button.getAttribute('data-name');
+                        const studentGrade = button.getAttribute('data-grade');
+                        const docentesNombresStr = button.getAttribute('data-docentes');
+                        const docentesNombres = docentesNombresStr ? docentesNombresStr.split(', ') : [];
+                        const row = button.closest('tr');
+                        const estudianteData = JSON.parse(row.dataset.estudiante);
+                        const studentNotas = estudianteData.notas || null;
+                        openPromotionModal(studentId, studentName, studentGrade, docentesNombres, studentNotas);
+                    }
+                }
+            });
+        }
+
+        // Evento para aprobar la promoción
+        if (approvePromotionBtn) {
+            approvePromotionBtn.addEventListener('click', () => {
+                if (!currentStudentId) return;
+
+                fetch(`/aprobar-promocion/${currentStudentId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Promoción aprobada.');
+                        promotionModal.style.display = 'none';
+                        fetchStudentsData(); // Actualizar la lista de estudiantes
+                    } else {
+                        alert('Hubo un error al aprobar la promoción.');
+                    }
+                })
+                .catch(error => console.error('Error al aprobar la promoción:', error));
+            });
+        }
+
+        // Evento para denegar la promoción
+        if (denyPromotionBtn) {
+            denyPromotionBtn.addEventListener('click', () => {
+                if (!currentStudentId) return;
+
+                fetch(`/denegar-promocion/${currentStudentId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Promoción denegada.');
+                        promotionModal.style.display = 'none';
+                        fetchStudentsData(); // Actualizar la lista de estudiantes
+                    } else {
+                        alert('Hubo un error al denegar la promoción.');
+                    }
+                })
+                .catch(error => console.error('Error al denegar la promoción:', error));
+            });
+        }
+
+        // Cargar los datos de los docentes y luego los estudiantes al inicializar el widget
+        fetchDocentesData();
+
+        // Configurar búsqueda y filtros después de inicializar el widget
+        setupSearchAndFilters();
     }
-});
+})();

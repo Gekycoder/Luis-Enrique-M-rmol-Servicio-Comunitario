@@ -16,7 +16,7 @@
         <link rel="stylesheet" href="{% static 'css/menu_constancias.css' %}">
         <link rel="stylesheet" href="{% static 'css/planificacion.css' %}">
         <title>Gestion Administrativa LEM</title>
-        <link rel="shortcut icon" type="image/x-icon" href="{% static 'images/lem_icono.ico' %}">
+        <link rel="shortcut icon" type="image/x-icon" href="{% static 'images/logolem.ico' %}">
         <meta name="csrf-token" content="{{ csrf_token }}">
         
     </head>
@@ -28,9 +28,9 @@
             <aside>
                 <div class="toggle">
                     <div class="logo">
-                        <img src="{% static 'images/logolem_inicio.png' %}">
+                        <img src="{% static 'images/logolem.png' %}">
                         <!-- Sidebar C.E L.E.M -->
-                        <h2>E.B<span class="lem"> L.E.M</span></h2>
+                        <h2>E.B<span class="lem"> Luis Enrique Mármol</span></h2>
                     </div>
                     <div class="close" id="close-btn">
                         <span class="material-icons-sharp">
@@ -42,23 +42,25 @@
                 <div class="sidebar">
 
                     <!-- Planificación: visible para todos -->
-                    <a id="planning" href="/sesion-exitosa/" class="sidebar-link">
+                    <a id="planningLink" href="#" class="sidebar-link">
                         <span class="material-symbols-outlined">strategy</span>
                         <h3 class="sidebar-menu">Planificación</h3>
                     </a>
 
                     <!-- Constancias, Docentes: visible para Administrador, Director, Subdirectora, Secretaria -->
                     {% if is_admin_or_director or is_secretaria %}
-                    <a id="certificates" href="#" class="sidebar-link">
+                    <a id="certificatesLink" href="#" class="sidebar-link">
                         <span class="material-symbols-outlined">verified</span>
                         <h3 class="sidebar-menu">Constancias</h3>
                     </a>
                     <div class="sidebar-submenu" id="certificates-submenu" style="display: none;">
-                        <a id="retiro-link" href="#"><span class="material-symbols-outlined">disabled_by_default</span> Retiro</a>
-                        <a id="estudio-link" href="#"><span class="material-symbols-outlined">square_foot</span> Estudio</a>
-                        <a id="asistencia-link" href="#"><span class="material-symbols-outlined">eda</span> Asistencia</a>
-                        <a id="inscripcion-link" href="#"><span class="material-symbols-outlined">how_to_reg</span> Inscripción</a>
+                        <a class="constancia-link" data-constancia-type="retiro" id="retiro-link" href="#"><span class="material-symbols-outlined">disabled_by_default</span> Retiro</a>
+                        <a class="constancia-link" data-constancia-type="estudio" id="estudio-link" href="#"><span class="material-symbols-outlined">square_foot</span> Estudio</a>
+                        <a class="constancia-link" data-constancia-type="asistencia" id="asistencia-link" href="#"><span class="material-symbols-outlined">eda</span> Asistencia</a>
+                        <a class="constancia-link" data-constancia-type="inscripcion" id="inscripcion-link" href="#"><span class="material-symbols-outlined">how_to_reg</span> Inscripción</a>
                     </div>
+                    
+
 
                     <a id="assignTeacher" href="#" class="sidebar-link">
                         <span class="material-symbols-outlined">school</span>
@@ -67,15 +69,15 @@
                     {% endif %}
 
                     <!-- Estudiantes: visible para todos -->
-                    <a id="students" href="#" class="sidebar-link">
+                    <a id="studentsLink" href="#" class="sidebar-link">
                         <span class="material-symbols-outlined">school</span>
                         <h3 class="sidebar-menu">Estudiantes</h3>
                     </a>
 
                     <!-- Boletines: visible para Administrador, Director, Docente, otros docentes -->
                     {% if is_admin_or_director or is_docente or is_otros_docentes %}
-                    <a id="reports" href="#" class="sidebar-link">
-                        <span class="material-symbols-outlined">analytics</span>
+                    <a id="reportsLink" href="#" class="sidebar-link">
+                        <span class="material-symbols-outlined">insert_drive_file</span>
                         <h3 class="sidebar-menu">Boletines</h3>
                     </a>
                     {% endif %}
@@ -117,13 +119,14 @@
                     {% endif %}
 
                     <!-- Opción de Salir: visible para todos -->
-                    <form id="logout" action="{% url 'logout' %}" method="POST">
+                    <form id="logout" class="sidebar-link" action="{% url 'logout' %}" method="POST">
                         {% csrf_token %}
-                        <button type="submit" class="sidebar-link">
+                        <button type="submit" class="logout-btn">
                             <span class="material-symbols-outlined">logout</span>
                             <h3 class="sidebar-menu">Salir</h3>
                         </button>
                     </form>
+                    
                     
                 </div>
                 
@@ -134,108 +137,132 @@
             <!-- Main Content -->
             <main>
 
-                <!-- Planificacion -->
-                <div class="new-users" id="status-widget">
-                    <h2>Estatus</h2>
-                    <div class="user-list">
-                        <div class="user" id="toggle-pendiente">
-                            <span class="material-symbols-outlined">keep_public</span>
-                            <h2>Por ejecutar</h2>
-                            <p id="pendientes-count">0</p>
-                        </div>
-                        <div class="user" id="toggle-completado">
-                            <span class="material-symbols-outlined">task</span>
-                            <h2>Completado</h2>
-                            <p id="completadas-count">0</p>
-                        </div>
-                        <div class="user" id="toggle-cancelado">
-                            <span class="material-symbols-outlined">free_cancellation</span>
-                            <h2>Cancelado</h2>
-                            <p id="canceladas-count">0</p>
+                
+
+                <div id="planning-widget" class="widget" style="display: none;">
+                    <!-- Planificacion -->
+                    <div class="new-users" id="status-widget">
+                        <h2>Estatus</h2>
+                        <div class="user-list">
+                            <div class="user" id="toggle-pendiente">
+                                <span class="material-symbols-outlined">keep_public</span>
+                                <h2>Por ejecutar</h2>
+                                <p id="pendientes-count">0</p>
+                            </div>
+                            <div class="user" id="toggle-completado">
+                                <span class="material-symbols-outlined">task</span>
+                                <h2>Completado</h2>
+                                <p id="completadas-count">0</p>
+                            </div>
+                            <div class="user" id="toggle-cancelado">
+                                <span class="material-symbols-outlined">free_cancellation</span>
+                                <h2>Cancelado</h2>
+                                <p id="canceladas-count">0</p>
+                            </div>
                         </div>
                     </div>
+                                    
+
+                    <div class="right-section">
+                        <div class="reminders" id="reminders-widget">
+                            <div class="header">
+                                <h2>Recordatorios</h2>
+                                <span class="material-icons-sharp">notifications_none</span>
+                            </div>
+                            <div id="recordatorios-list">
+                                <!-- Lista de tareas se llenará con JavaScript -->
+                            </div>
+                            <div class="notification add-reminder" id="add-reminder">
+                                <div>
+                                    <span class="material-icons-sharp">add</span>
+                                    <h3>Agregar Recordatorio</h3>
+                                </div>
+                            </div>
+                        </div>
+                    
+                        <!-- Modal para crear/editar tareas -->
+                        <div id="modal-tarea" style="display: none;" class="modal">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <span class="close-button" id="close-modal">&times;</span>
+                                    <h2>Gestionar Tarea</h2>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="tarea-form">
+                                        <div class="form-group">
+                                            <label for="nombre">Nombre de la Tarea</label>
+                                            <input type="text" id="nombre" name="nombre" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="descripcion">Descripción</label>
+                                            <textarea id="descripcion" name="descripcion" required></textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="fecha">Fecha</label>
+                                            <input type="date" id="fecha" name="fecha" required>
+                                        </div>
+                                        <button type="submit" class="btn">Guardar</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>                
                 </div>
-                                
-
-                <div class="right-section">
-                    <div class="reminders" id="reminders-widget">
-                        <div class="header">
-                            <h2>Recordatorios</h2>
-                            <span class="material-icons-sharp">notifications_none</span>
-                        </div>
-                        <div id="recordatorios-list">
-                            <!-- Lista de tareas se llenará con JavaScript -->
-                        </div>
-                        <div class="notification add-reminder" id="add-reminder">
-                            <div>
-                                <span class="material-icons-sharp">add</span>
-                                <h3>Agregar Recordatorio</h3>
-                            </div>
-                        </div>
-                    </div>
-                
-                    <!-- Modal para crear/editar tareas -->
-                    <div id="modal-tarea" style="display: none;" class="modal">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <span class="close-button" id="close-modal">&times;</span>
-                                <h2>Gestionar Tarea</h2>
-                            </div>
-                            <div class="modal-body">
-                                <form id="tarea-form">
-                                    <div class="form-group">
-                                        <label for="nombre">Nombre de la Tarea</label>
-                                        <input type="text" id="nombre" name="nombre" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="descripcion">Descripción</label>
-                                        <textarea id="descripcion" name="descripcion" required></textarea>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="fecha">Fecha</label>
-                                        <input type="date" id="fecha" name="fecha" required>
-                                    </div>
-                                    <button type="submit" class="btn">Guardar</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>                
-                
                 <!-- Planificacion -->
 
-                <div class="user-widget" id="user-widget" style="display: none;">
+                <!-- Widget de Usuarios -->
+                <div class="user-widget widget" id="user-widget" style="display: none;">
                     <h2>Usuarios</h2>
                     <div class="search-container">
                         <input type="text" id="users-search" placeholder="Buscar usuarios...">
                     </div>
+                    
                     <table id="user-table">
                         <thead>
                             <tr>
                                 <th>ID</th>
                                 <th>Nombres</th>
                                 <th>Apellidos</th>
-                                <th>Cedula</th>
+                                <th>Cédula</th>
                                 <th>Usuario</th>
                                 <th>Contraseña</th>
                                 <th>Correo</th>
-                                <th>Teléfono</th>
+                                <th>Teléfonos</th>
                                 <th>Dirección</th>
-                                <th>Cargo</th>
+                                <th>Rol</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Los datos de los estudiantes se cargarán aquí dinámicamente -->
+                            <!-- Los datos de los usuarios se llenarán aquí dinámicamente -->
                         </tbody>
                     </table>
                 </div>
+
                     
-                <div class="student-widget" id="students-widget" style="display: none;">
+                <!-- Widget de Estudiantes (Notas) -->
+                <div class="student-widget widget" id="students-widget" style="display: none;">
                     <h2>Estudiantes</h2>
                     <div class="search-container">
                         <input type="text" id="students-search" placeholder="Buscar estudiantes...">
                     </div>
-                    
+
+                    <!-- Botones de filtro -->
+                    {% if is_admin_or_director or is_secretaria %}
+                    <select id="filter-grade">
+                        <option value="" disabled selected>Grado</option>
+                        <option value="I">Nivel I</option>
+                        <option value="II">Nivel II</option>
+                        <option value="III">Nivel III</option>
+                        <option value="1°">1° Grado</option>
+                        <option value="2°">2° Grado</option>
+                        <option value="3°">3° Grado</option>
+                        <option value="4°">4° Grado</option>
+                        <option value="5°">5° Grado</option>
+                        <option value="6°">6° Grado</option>
+                    </select>
+                    {% endif %}
+
+
                     <table id="students-table">
                         <thead>
                             <tr>
@@ -253,28 +280,50 @@
                                 <th>Dirección</th>
                                 <th>Teléfono</th>
                                 <th>Notas</th>
-                                {% if usuario_rol == 'Director' or usuario_rol == 'Administrador' %}
+                                {% if is_admin_or_director%}
                                 <th>Promoción</th>
-                                {% endif %}
+                                {%endif%}
                             </tr>
                         </thead>
                         <tbody>
                             <!-- Los datos de los estudiantes se cargarán aquí dinámicamente -->
                         </tbody>
-                    </table>
-                
-                    <div id="contextMenu" class="context-menu" style="display: none;">
-                        <ul>
-                          <li id="generateCertificate">Generar constancia</li>
-                          <!-- Agrega aquí más opciones si lo necesitas -->
-                        </ul>
-                    </div>
-                
+                    </table>                
                 </div>
 
+                <div id="notasModal" class="modal-notas">
+                    <div class="modal-content-notas">
+                        <span class="close" onclick="closeModalFunc()">&times;</span>
+                        <h2 id="studentName">Notas de Estudiante</h2>
+                        <form id="notasForm">
+                            <div class="form-group">
+                                <label for="notasInput">Nota:</label>
+                                <input id="notasInput" type="text" placeholder="Ingrese las notas (A-E)" pattern="[A-Ea-e, ]+" required>
+                            </div>
+                            <button type="submit" class="assign-grade">Guardar Nota</button>
+                        </form>
+                    </div>
+                </div>
+                
+                {% if is_admin_or_director%}
+                <div id="promotionModal" class="modal-promotion">
+                    <div class="modal-content-promotion">
+                        <span class="close" onclick="closePromotionModal()">&times;</span>
+                        <h2 id="promotionStudentName">Estudiante</h2>
+                        <p id="promotionStudentGrade">Grado Actual</p>
+                        <p id="promotionDocente">Docente</p>
+                        <p id="promotionNotas">Notas</p>
+                        <button id="approvePromotionBtn">Aprobar Promoción</button>
+                        <button id="denyPromotionBtn">Denegar Promoción</button>
+                    </div>
+                </div>
+                {%endif%}
+                
+                
 
                 <!-- Modal para asignar al Docente -->
-                <div class="teacher-widget" id="teacher-widget">
+                <!-- Widget de Docentes -->
+                <div id="teacher-widget" class="teacher-widget widget" style="display: none;">
                     <h2>Asignar Docentes a Grados y Secciones</h2>
                     <table class="teacher-table" id="teacherTable">
                         <thead>
@@ -292,22 +341,14 @@
                         </tbody>
                     </table>
                 </div>
+
                 
 
                 
                 
                 <!-- Modal para visualizar y editar notas para el Docente -->
                 
-                <div id="notasModal" class="modal">
-                    <div class="modal-content">
-                        <span class="close">&times;</span>
-                        <h2 id="studentName"></h2>
-                        <form id="notasForm">
-                            <input id="notasInput" type="text" placeholder="Ingrese las notas (A-E)" pattern="[A-Ea-e, ]+" required>
-                            <button type="submit">Guardar Notas</button>
-                        </form>
-                    </div>
-                </div>
+                
                 
                 
                 <!-- Modal para que el director apruebe o deniegue la solicitud de promoción -->
@@ -326,9 +367,97 @@
                 {% endif %}
                 
 
+                <!-- Widget de Constancias -->
+                <div id="constancias-widget" class="boletines-widget widget" style="display: none;">
+                    <!-- Botón de Filtro Global -->
+                    <div class="filter-container">
+                        <input type="text" id="buscar-constancia-input" placeholder="Buscar estudiantes...">
+                    </div>
+
+                    <div class="h2-container">
+                        <h2 id="constancias-title">Estudiantes - Constancias</h2>
+                    </div>
+
+                    <div id="table-container">
+                        <table id="constancias-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>CI</th>
+                                    <th>Apellidos y Nombres</th>
+                                    <th>Grado</th>
+                                    <th>Sección</th>
+                                    <th>Sexo</th>
+                                    <th>Edad</th>
+                                    <th>Lugar de Nacimiento</th>
+                                    <th>Fecha de Nacimiento</th>
+                                    <th>Representante</th>
+                                    <th>CI Representante</th>
+                                    <th>Dirección</th>
+                                    <th>Teléfono</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Los datos de los estudiantes se cargarán aquí dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
 
-                
+                <!-- Sección de Boletines (Oculta por defecto) -->
+                <div class="boletines-widget widget" id="boletines-widget" style="display: none;">
+                    <!-- Botón de Filtro Global -->
+                    <div class="filter-container">
+                        <input type="text" id="buscar-input" placeholder="Buscar estudiantes...">
+                    </div>
+
+                    <select id="filter-grade-boletines">
+                        <option value="" disabled selected>Grado</option>
+                        <option value="I">Nivel I</option>
+                        <option value="II">Nivel II</option>
+                        <option value="III">Nivel III</option>
+                        <option value="1°">1° Grado</option>
+                        <option value="2°">2° Grado</option>
+                        <option value="3°">3° Grado</option>
+                        <option value="4°">4° Grado</option>
+                        <option value="5°">5° Grado</option>
+                        <option value="6°">6° Grado</option>
+                    </select>
+
+                    <div class="h2-container">
+                        <h2>Estudiantes - Boletines</h2>
+                    </div>
+
+                    <div id="table-container">
+                        <table id="boletines-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>CI</th>
+                                    <th>Apellidos y Nombres</th>
+                                    <th>Grado</th>
+                                    <th>Sección</th>
+                                    <th>Sexo</th>
+                                    <th>Edad</th>
+                                    <th>Lugar de Nacimiento</th>
+                                    <th>Fecha de Nacimiento</th>
+                                    <th>Representante</th>
+                                    <th>CI Representante</th>
+                                    <th>Dirección</th>
+                                    <th>Teléfono</th>
+                                    <th>Acciones</th> <!-- Aquí solo incluimos el botón "1er Momento" por ahora -->
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Los datos de los estudiantes se cargarán aquí dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+
 
                 <!-- Boletines -->
                 <div id="boletinesForm" class="modal">
@@ -382,7 +511,7 @@
                 <!-- Modal para agregar usuario -->
                 <div id="widget-addUser" class="modal">
                     <div class="modal-content">
-                        <span class="close" onclick="closeAddUserModal()">&times;</span>
+                        <span class="close">&times;</span>
                         <form id="addUserForm" class="form-grid">
                             <h2>Agregar Usuario</h2>
                             <input type="text" name="nombres" placeholder="Nombres" required>
@@ -392,7 +521,7 @@
                             <input type="password" name="contrasena" placeholder="Contraseña" required>
                             <input type="email" name="correo" placeholder="Correo" required>
                             <input type="text" name="telefonos" placeholder="Teléfonos" required>
-                            <input type="text" name="direccion" placeholder="Direccion" required>
+                            <input type="text" name="direccion" placeholder="Dirección" required>
                             <select name="rol" required>
                                 <option value="" disabled selected>Seleccionar Cargo</option>
                                 <option value="Director">Director</option>
@@ -404,28 +533,33 @@
                     </div>
                 </div>
 
+
                 <!-- Modal para modificar usuario -->
                 <div id="widget-editUser" class="modal">
-                    <form id="editUserForm" class="form-grid">
-                        <h2>Modificar Usuario</h2>
-                        <input type="number" id="userId" name="id" placeholder="ID del Usuario" required>
-                        <input type="text" id="userNombres" name="nombres" placeholder="Nombres" required>
-                        <input type="text" id="userApellidos" name="apellidos" placeholder="Apellidos" required>
-                        <input type="text" id="userCedula" name="cedula" placeholder="Cédula" required>
-                        <input type="text" id="userUsuario" name="usuario" placeholder="Usuario" required>
-                        <input type="password" id="userContrasena" name="contrasena" placeholder="Contraseña" required>
-                        <input type="email" id="userCorreo" name="correo" placeholder="Correo" required>
-                        <input type="text" id="userTelefonos" name="telefonos" placeholder="Teléfonos" required>
-                        <input type="text" id="userDireccion" name="direccion" placeholder="Dirección" required>
-                        <input type="text" id="userRol" name="rol" placeholder="Rol" required>
-                        <button type="submit">Modificar</button>
-                    </form>
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <form id="editUserForm" class="form-grid">
+                            <h2>Modificar Usuario</h2>
+                            <input type="number" id="userId" name="id" placeholder="ID del Usuario" required>
+                            <input type="text" id="userNombres" name="nombres" placeholder="Nombres" required>
+                            <input type="text" id="userApellidos" name="apellidos" placeholder="Apellidos" required>
+                            <input type="text" id="userCedula" name="cedula" placeholder="Cédula" required>
+                            <input type="text" id="userUsuario" name="usuario" placeholder="Usuario" required>
+                            <input type="password" id="userContrasena" name="contrasena" placeholder="Contraseña" required>
+                            <input type="email" id="userCorreo" name="correo" placeholder="Correo" required>
+                            <input type="text" id="userTelefonos" name="telefonos" placeholder="Teléfonos" required> <!-- Corregido -->
+                            <input type="text" id="userDireccion" name="direccion" placeholder="Dirección" required>
+                            <input type="text" id="userRol" name="rol" placeholder="Rol" required>
+                            <button type="submit">Modificar</button>
+                        </form>
+                    </div>
                 </div>
+
 
                 <!-- Modal para eliminar usuario -->
                 <div id="widget-deleteUser" class="modal">
                     <div class="modal-content">
-                        <span class="close" onclick="closeDeleteUserModal()">&times;</span>
+                        <span class="close">&times;</span>
                         <form id="deleteUserForm" class="form-grid">
                             <h2>Eliminar Usuario</h2>
                             <input type="text" name="id" placeholder="ID del Usuario" required>
@@ -437,7 +571,7 @@
                 <!-- Modal para agregar estudiante -->
                 <div id="widget-addStudent" class="modal">
                     <div class="modal-content">
-                        <span class="close" onclick="closeAddStudentModal()">&times;</span>
+                        <span class="close">&times;</span>
                         <form id="addStudentForm" class="form-grid">
                             <h2>Agregar Estudiante</h2>
                             <input type="text" name="ci" placeholder="Cédula del Estudiante" required>
@@ -454,14 +588,12 @@
                                 <option value="5°">5° Grado</option>
                                 <option value="6°">6° Grado</option>
                             </select>
-                            
                             <select id="seccionSelect" name="seccion" required>
                                 <option value="" disabled selected>Sección</option>
                                 <option value="U">Sección U</option>
                                 <option value="A">Sección A</option>
                                 <option value="B">Sección B</option>
-                            </select>                         
-                            
+                            </select>
                             <select name="sexo" required>
                                 <option value="" disabled selected>Seleccionar Sexo</option>
                                 <option value="M">Masculino</option>
@@ -478,37 +610,38 @@
                         </form>
                     </div>
                 </div>
-                
 
                 <!-- Modal para modificar estudiante -->
                 <div id="widget-editStudent" class="modal">
-                    <form id="editStudentForm" class="form-grid">
-                        <h2>Modificar Estudiante</h2>
-                        <input type="number" id="studentId" name="id" placeholder="ID del Estudiante" required>
-                        <input type="text" id="studentCI" name="ci" placeholder="Cédula del Estudiante" required>
-                        <input type="text" id="studentApellidosNombres" name="apellidos_nombres" placeholder="Apellidos y Nombres" required>
-                        <input type="text" id="studentGrado" name="grado" placeholder="Grado" required>
-                        <input type="text" id="studentSeccion" name="seccion" placeholder="Sección" required>
-                        <select id="studentSexo" name="sexo" required>
-                            <option value="" disabled selected>Seleccionar Sexo</option>
-                            <option value="M">Masculino</option>
-                            <option value="F">Femenino</option>
-                        </select>
-                        <input type="number" id="studentEdad" name="edad" placeholder="Edad" required>
-                        <input type="text" id="studentLugarNac" name="lugar_nac" placeholder="Lugar de Nacimiento" required>
-                        <input type="date" id="studentFechaNac" name="fecha_nac" placeholder="Fecha de Nacimiento (YYYY-MM-DD)" required>
-                        <input type="text" id="studentRepresentante" name="representante" placeholder="Representante" required>
-                        <input type="text" id="studentCIRepresentante" name="ci_representante" placeholder="Cédula del Representante" required>
-                        <input type="text" id="studentDireccion" name="direccion" placeholder="Dirección" required>
-                        <input type="text" id="studentTlf" name="tlf" placeholder="Teléfono" required>
-                        <button type="submit">Modificar</button>
-                    </form>
+                    <div class="modal-content">
+                        <form id="editStudentForm" class="form-grid">
+                            <h2>Modificar Estudiante</h2>
+                            <input type="number" id="studentId" name="id" placeholder="ID del Estudiante" required>
+                            <input type="text" id="studentCI" name="ci" placeholder="Cédula del Estudiante" required>
+                            <input type="text" id="studentApellidosNombres" name="apellidos_nombres" placeholder="Apellidos y Nombres" required>
+                            <input type="text" id="studentGrado" name="grado" placeholder="Grado" required>
+                            <input type="text" id="studentSeccion" name="seccion" placeholder="Sección" required>
+                            <select id="studentSexo" name="sexo" required>
+                                <option value="" disabled selected>Seleccionar Sexo</option>
+                                <option value="M">Masculino</option>
+                                <option value="F">Femenino</option>
+                            </select>
+                            <input type="number" id="studentEdad" name="edad" placeholder="Edad" required>
+                            <input type="text" id="studentLugarNac" name="lugar_nac" placeholder="Lugar de Nacimiento" required>
+                            <input type="date" id="studentFechaNac" name="fecha_nac" placeholder="Fecha de Nacimiento (YYYY-MM-DD)" required>
+                            <input type="text" id="studentRepresentante" name="representante" placeholder="Representante" required>
+                            <input type="text" id="studentCIRepresentante" name="ci_representante" placeholder="Cédula del Representante" required>
+                            <input type="text" id="studentDireccion" name="direccion" placeholder="Dirección" required>
+                            <input type="text" id="studentTlf" name="tlf" placeholder="Teléfono" required>
+                            <button type="submit">Modificar</button>
+                        </form>
+                    </div>
                 </div>
 
                 <!-- Modal para eliminar estudiante -->
                 <div id="widget-deleteStudent" class="modal">
                     <div class="modal-content">
-                        <span class="close" onclick="closeDeleteStudentModal()">&times;</span>
+                        <span class="close">&times;</span>
                         <form id="deleteStudentForm" class="form-grid">
                             <h2>Eliminar Estudiante</h2>
                             <input type="text" name="id" placeholder="ID del Estudiante" required>
@@ -516,6 +649,11 @@
                         </form>
                     </div>
                 </div>
+
+
+
+
+
 
             </main>
             <!-- End of Main Content -->
@@ -562,8 +700,10 @@
                     
                             <a href="#" id="modify-user">
                                 <span class="material-symbols-outlined">manage_accounts</span>
-                                Modificar usuario
+                                Mis datos
                             </a>
+                            
+                            
                     
                             <a id="logout-profile" href="#">
                                 <span class="material-symbols-outlined">logout</span>
@@ -604,14 +744,18 @@
                 </div>
 
         </div>
+        <script src="{% static 'js/main.js' %}"></script>
         <script src="{% static 'js/sidebar_sesion.js' %}"></script>
         <script src="{% static 'js/calendario.js' %}"></script>
         <script src="{% static 'js/planificacion.js' %}"></script>
         <script src="{% static 'js/sidebar_constancias.js' %}"></script>
         <script src="{% static 'js/eventos_sidebar.js' %}"></script>
         <script src="{% static 'js/boletines.js' %}"></script>
+        <script src="{% static 'js/docente.js' %}"></script>
+        <script src="{% static 'js/constancias.js' %}"></script>
         <script src="{% static 'js/manejo_de_usuarios.js' %}"></script>
         <script src="{% static 'js/notas.js' %}"></script>
+        <script src="{% static 'js/users.js' %}"></script>
         <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
         <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
 

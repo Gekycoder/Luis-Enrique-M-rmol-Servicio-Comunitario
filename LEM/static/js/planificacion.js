@@ -1,24 +1,92 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const modal = document.getElementById('modal-tarea');
-    const closeModalButton = document.getElementById('close-modal');
-    const addReminderButton = document.querySelector('.notification.add-reminder');
+// planificacion.js
+
+document.addEventListener('DOMContentLoaded', () => {
+    const modalTarea = document.getElementById('modal-tarea');  // Referencia al modal (nueva variable)
+    const closeModalButton = document.getElementById('close-modal');  // Botón para cerrar el modal
+    const addReminderButton = document.getElementById('add-reminder');  // Botón para agregar recordatorio
     let currentTaskId = null;
 
-    addReminderButton.addEventListener('click', function() {
-        currentTaskId = null;
-        document.getElementById('tarea-form').reset();
-        modal.style.display = 'block';
-    });
+    // Función para ocultar todos los modales
+    const hideAllModals = () => {
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => modal.style.display = 'none');
+    };
 
-    closeModalButton.addEventListener('click', function() {
-        modal.style.display = 'none';
-    });
+    // Función para mostrar el modal de tareas
+    const showTaskModal = () => {
+        console.log("Mostrando modal de tarea");  // Mensaje de depuración
+        hideAllModals();  // Ocultar cualquier otro modal
+        modalTarea.style.visibility = 'visible';  // Hacer visible
+        modalTarea.style.opacity = '1';  // Hacer completamente opaco
+        modalTarea.style.transition = 'opacity 0.3s ease-in-out';  // Transición suave
+        document.getElementById('tarea-form').reset();  // Reiniciar el formulario
+        currentTaskId = null;  // Reiniciar el ID de la tarea actual
+    };
+    
+    const closeTaskModal = () => {
+        modalTarea.style.visibility = 'hidden';  // Ocultar el modal
+        modalTarea.style.opacity = '0';  // Hacer completamente transparente
+    };
 
+    // Añadir event listener al botón de "Agregar Recordatorio"
+    if (addReminderButton) {
+        addReminderButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log("Botón 'Agregar Recordatorio' clickeado");  // Mensaje de depuración
+            showTaskModal();  // Mostrar el modal
+        });
+    } else {
+        console.error("No se encontró el botón 'Agregar Recordatorio'");
+    }
+
+    // Añadir event listener al botón de cerrar el modal
+    if (closeModalButton) {
+        closeModalButton.addEventListener('click', () => {
+            closeTaskModal();
+        });
+    } else {
+        console.error("No se encontró el botón de cerrar el modal");
+    }
+
+    // Cerrar el modal cuando se hace clic fuera del contenido del modal
     window.addEventListener('click', function(event) {
-        if (event.target == modal) {
-            modal.style.display = 'none';
+        if (event.target === modalTarea) {
+            closeTaskModal();
         }
     });
+
+    // Función para inicializar el widget de planificación (sin ocultar la tabla en el fondo)
+    const planningLink = document.getElementById('planningLink');
+    const planningWidget = document.getElementById('planning-widget');
+
+    if (planningWidget) planningWidget.style.display = 'none';
+
+    // Función para mostrar el widget de planificación
+    const showPlanningWidget = () => {
+        hideAllWidgets(); // Oculta todos los widgets
+        if (planningWidget) planningWidget.style.display = 'block';
+        initializePlanningWidget(); // Inicializa el widget de planificación
+    };
+
+    // Evento para mostrar el widget de planificación al hacer clic en el enlace correspondiente
+    if (planningLink) {
+        planningLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showPlanningWidget();
+        });
+    }
+
+    // Inicialización del widget de planificación
+    let planningWidgetInitialized = false;
+
+    function initializePlanningWidget() {
+        if (planningWidgetInitialized) {
+            return;
+        }
+        planningWidgetInitialized = true;
+
+        // Aquí puedes agregar el código de inicialización si es necesario
+    }
 
     document.getElementById('tarea-form').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -36,16 +104,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }).then(response => response.json())
           .then(data => {
               if (data.success) {
-                  modal.style.display = 'none';
+                  closeTaskModal();  // Cerrar el modal después de guardar la tarea
                   actualizarEstatus();
                   cargarRecordatorios();
-                  window.fetchTasksAndRender(); // Refresh calendar
+                  if (window.fetchTasksAndRender) {
+                      window.fetchTasksAndRender();  // Actualizar calendario si existe
+                  }
               } else {
                   alert('Error al guardar la tarea');
               }
           });
     });
 
+    // Llamar a las funciones para cargar los recordatorios y el estatus al cargar la página
+    cargarRecordatorios();
+    actualizarEstatus();
+
+    // Funciones de actualización de estatus y recordatorios
     function actualizarEstatus() {
         fetch('/obtener-tareas/')
             .then(response => response.json())
@@ -57,6 +132,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('pendientes-count').innerText = pendientesCount;
                 document.getElementById('completadas-count').innerText = completadasCount;
                 document.getElementById('canceladas-count').innerText = canceladasCount;
+            })
+            .catch(error => {
+                console.error('Error al actualizar el estatus:', error);
             });
     }
 
@@ -106,9 +184,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         completarTarea(tareaId);
                     });
                 });
+            })
+            .catch(error => {
+                console.error('Error al cargar los recordatorios:', error);
             });
     }
 
+    // Funciones para editar, eliminar y completar tareas
     function mostrarMenuOpciones(tareaId) {
         console.log('Mostrar opciones para la tarea:', tareaId);
         fetch(`/obtener-tarea/${tareaId}/`)
@@ -119,10 +201,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.getElementById('descripcion').value = data.tarea.descripcion;
                     document.getElementById('fecha').value = data.tarea.fecha;
                     currentTaskId = tareaId;
-                    modal.style.display = 'block';
+                    modalTarea.style.visibility = 'visible';  // Mostrar el modal
+                    modalTarea.style.opacity = '1';  // Hacer completamente visible
                 } else {
                     alert('Error al cargar la tarea');
                 }
+            })
+            .catch(error => {
+                console.error('Error al obtener la tarea:', error);
             });
     }
 
@@ -141,10 +227,15 @@ document.addEventListener('DOMContentLoaded', function() {
                   if (data.success) {
                       actualizarEstatus();
                       cargarRecordatorios();
-                      window.fetchTasksAndRender(); // Refresh calendar
+                      if (window.fetchTasksAndRender) {
+                          window.fetchTasksAndRender();  // Actualizar calendario si existe
+                      }
                   } else {
                       alert('Error al eliminar la tarea');
                   }
+              })
+              .catch(error => {
+                  console.error('Error al eliminar la tarea:', error);
               });
         }
     }
@@ -163,13 +254,15 @@ document.addEventListener('DOMContentLoaded', function() {
               if (data.success) {
                   actualizarEstatus();
                   cargarRecordatorios();
-                  window.fetchTasksAndRender(); // Refresh calendar
+                  if (window.fetchTasksAndRender) {
+                      window.fetchTasksAndRender();  // Actualizar calendario si existe
+                  }
               } else {
                   alert('Error al marcar la tarea como completada');
               }
+          })
+          .catch(error => {
+              console.error('Error al completar la tarea:', error);
           });
     }
-
-    actualizarEstatus();
-    cargarRecordatorios();
 });

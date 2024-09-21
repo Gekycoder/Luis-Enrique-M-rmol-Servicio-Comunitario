@@ -1,325 +1,260 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const maxTotalChars = 3170;
+    let currentEstudianteId = null;  // Variable para guardar el ID del estudiante al hacer clic en "1er Momento"
 
-    const inputs = [
-        { field: document.getElementById('formacionPersonal'), counter: document.getElementById('formacionPersonalCounter') },
-        { field: document.getElementById('relacionAmbiente'), counter: document.getElementById('relacionAmbienteCounter') },
-        { field: document.getElementById('comunicacionRepresentacion'), counter: document.getElementById('comunicacionRepresentacionCounter') },
-        { field: document.getElementById('sugerencias'), counter: document.getElementById('sugerenciasCounter') }
-    ];
+    const boletinesModal = document.getElementById('boletinesForm');  // Referencia al modal
+    const closeModalBtn = document.querySelector('.close');  // Botón para cerrar el modal
+    const formBoletines = document.getElementById('formBoletines');  // El formulario dentro del modal
+    let estudiantesData = [];  // Variable global para almacenar los estudiantes
+    let selectedGrade = ''; // Inicializamos la variable del grado
 
-    function calculateTotalChars() {
-        return inputs.reduce((total, input) => total + input.field.value.length, 0);
-    }
-
-    function updateCharCounters() {
-        const totalChars = calculateTotalChars();
-        const remainingChars = maxTotalChars - totalChars;
-
-        inputs.forEach(input => {
-            input.counter.textContent = `${totalChars}/${maxTotalChars} caracteres usados`;
-        });
-
-        console.log(`Total characters used: ${totalChars}`);
-        console.log(`Remaining characters: ${remainingChars}`);
-    }
-
-    function checkFieldLength() {
-        const totalChars = calculateTotalChars();
-        if (totalChars > maxTotalChars) {
-            alert('Has alcanzado el límite máximo de caracteres permitidos.');
-        }
-    }
-
-    inputs.forEach(input => {
-        input.field.addEventListener('input', () => {
-            updateCharCounters();
-            checkFieldLength();
-        });
-    });
-
-    updateCharCounters(); // Inicializar los contadores
-
-    // Resto de tu código existente...
-
-    const getCookie = (name) => {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; cookies[i]; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-    const csrftoken = getCookie('csrftoken');
-
-    const spanishTranslation = {
-        "sProcessing": "Procesando...",
-        "sLengthMenu": "Mostrar _MENU_ registros",
-        "sZeroRecords": "No se encontraron resultados",
-        "sEmptyTable": "Ningún dato disponible en esta tabla",
-        "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-        "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-        "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-        "sInfoPostFix": "",
-        "sSearch": "Buscar:",
-        "sUrl": "",
-        "sInfoThousands": ",",
-        "sLoadingRecords": "Cargando...",
-        "oPaginate": {
-            "sFirst": "Primero",
-            "sLast": "Último",
-            "sNext": "Siguiente",
-            "sPrevious": "Anterior"
-        },
-        "oAria": {
-            "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-            "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-        }
+    // Función para ocultar todos los modales
+    const hideAllModals = () => {
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => modal.style.display = 'none');
     };
 
-    let studentsTable;
-
-    function initializeDataTable(tableSelector) {
-        return $(tableSelector).DataTable({
-            language: spanishTranslation,
-            paging: true,
-            lengthChange: true,
-            searching: true,
-            ordering: true,
-            info: true,
-            autoWidth: false,
-            responsive: true,
-        });
-    }
-
-    const boletinesLink = document.getElementById('reports');
-    const boletinesForm = document.getElementById('boletinesForm');
-    const studentsWidget = document.getElementById('students-widget');
-    const contextMenu = document.getElementById('contextMenu');
-
-    const planningLink = document.getElementById('planning');
-    const usersLink = document.getElementById('users');
-    const studentsLink = document.getElementById('students');
-    const retiroLink = document.getElementById('retiro-link');
-    const estudioLink = document.getElementById('estudio-link');
-    const asistenciaLink = document.getElementById('asistencia-link');
-    const inscripcionLink = document.getElementById('inscripcion-link');
-    const addUserLink = document.getElementById('addUser');
-    const editUserLink = document.getElementById('editUser');
-    const deleteUserLink = document.getElementById('deleteUser');
-    const statusWidget = document.getElementById('status-widget');
-    const remindersWidget = document.getElementById('reminders-widget');
-    const calendarWidget = document.getElementById('calendar-widget');
-    const usersWidget = document.getElementById('user-widget');
-    const addUserWidget = document.getElementById('widget-addUser');
-    const editUserWidget = document.getElementById('widget-editUser');
-    const deleteUserWidget = document.getElementById('widget-deleteUser');
-
-    const hideAllWidgets = () => {
-        if (statusWidget) statusWidget.style.display = 'none';
-        if (remindersWidget) remindersWidget.style.display = 'none';
-        if (calendarWidget) calendarWidget.style.display = 'none';
-        if (usersWidget) usersWidget.style.display = 'none';
-        if (studentsWidget) studentsWidget.style.display = 'none';
-        if (addUserWidget) addUserWidget.style.display = 'none';
-        if (editUserWidget) editUserWidget.style.display = 'none';
-        if (deleteUserWidget) deleteUserWidget.style.display = 'none';
-        if (boletinesForm) boletinesForm.style.display = 'none';
+    // Función para mostrar el modal
+    const showBoletinesModal = (estudianteId) => {
+        currentEstudianteId = estudianteId;  // Guardar el ID del estudiante
+        hideAllModals();  // Ocultar cualquier otro modal
+        boletinesModal.style.display = 'block';  // Mostrar el modal de boletines
     };
 
-    if (boletinesLink) {
-        boletinesLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            hideAllWidgets();
-            if (boletinesForm) boletinesForm.style.display = 'block';
-            resetStudentTable(); // Resetea la tabla de estudiantes
-        });
-    }
+    // Función para ocultar el modal
+    const closeBoletinesModal = () => {
+        boletinesModal.style.display = 'none';
+    };
 
-    document.getElementById('formBoletines').addEventListener('submit', function (e) {
-        e.preventDefault();
-
-        // Convierte los saltos de línea en un delimitador especial
-        const convertNewLinesToDelimiter = (str) => str.replace(/\n/g, ';');
-
-        const data = {
-            formacionPersonal: convertNewLinesToDelimiter(document.getElementById('formacionPersonal').value),
-            relacionAmbiente: convertNewLinesToDelimiter(document.getElementById('relacionAmbiente').value),
-            comunicacionRepresentacion: convertNewLinesToDelimiter(document.getElementById('comunicacionRepresentacion').value),
-            sugerencias: convertNewLinesToDelimiter(document.getElementById('sugerencias').value),
-            diasHabiles: document.getElementById('diasHabiles').value,
-            asistencias: document.getElementById('asistencias').value,
-            inasistencias: document.getElementById('inasistencias').value
-        };
-
-        console.log(`Formación Personal y Social: ${data.formacionPersonal.length}`);
-        console.log(`Relación con el Ambiente: ${data.relacionAmbiente.length}`);
-        console.log(`Comunicación y Representación: ${data.comunicacionRepresentacion.length}`);
-        console.log(`Sugerencias y Recomendación del (la) Docente: ${data.sugerencias.length}`);
-
-        console.log('Datos del boletín:', data); // Aquí puedes enviar estos datos al servidor si es necesario
-
-        // Esconder formulario y mostrar la tabla de estudiantes
-        boletinesForm.style.display = 'none';
-        studentsWidget.style.display = 'block';
-        fetchStudentData();
-
-        // Cambiar el texto y la funcionalidad de los botones en la tabla
-        document.querySelectorAll('#students-table .action-btn').forEach(function (button) {
-            button.textContent = 'Generar Boletín';
-            button.onclick = function () {
-                console.log('Generando boletín para', button.closest('tr').querySelector('.student-name').textContent);
-                const studentId = button.closest('tr').dataset.studentId;
-
-                // Crear un formulario oculto para enviar los datos por POST
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = `/generar-boletin-1er-momento-preescolar/${studentId}/`;
-
-                // Agregar el token CSRF al formulario
-                const csrfInput = document.createElement('input');
-                csrfInput.type = 'hidden';
-                csrfInput.name = 'csrfmiddlewaretoken';
-                csrfInput.value = csrftoken;
-                form.appendChild(csrfInput);
-
-                // Agregar los datos del boletín al formulario
-                for (const key in data) {
-                    if (data.hasOwnProperty(key)) {
-                        const input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = key;
-                        input.value = data[key];
-                        form.appendChild(input);
-                    }
-                }
-
-                // Agregar el formulario al cuerpo del documento y enviarlo
-                document.body.appendChild(form);
-                form.submit();
-            };
-        });
+    // Añadir event listener al botón de cerrar el modal
+    closeModalBtn.addEventListener('click', () => {
+        closeBoletinesModal();
     });
 
-    function fetchStudentData() {
-        fetch('/get-estudiantes/')
-            .then(response => response.json())
-            .then(data => {
-                const studentsTableBody = document.querySelector('#students-table tbody');
-                studentsTableBody.innerHTML = '';
+    // Añadir event listener a todos los botones de "1er Momento"
+    document.addEventListener('click', function(event) {
+        if (event.target.classList.contains('generate-boletin')) {
+            event.preventDefault();
+            const estudianteId = event.target.getAttribute('data-id');  // Obtener el ID del estudiante
+            showBoletinesModal(estudianteId);  // Mostrar el modal
+        }
+    });
 
-                data.estudiantes.forEach(estudiante => {
-                    const row = studentsTableBody.insertRow();
-                    row.setAttribute('data-student-id', estudiante.id);
-                    row.innerHTML = `
-                        <td>${estudiante.id}</td>
-                        <td>${estudiante.ci}</td>
-                        <td>${estudiante.apellidos_nombres}</td>
-                        <td>${estudiante.grado}</td>
-                        <td>${estudiante.seccion}</td>
-                        <td>${estudiante.sexo}</td>
-                        <td>${estudiante.edad}</td>
-                        <td>${estudiante.lugar_nac}</td>
-                        <td>${estudiante.fecha_nac}</td>
-                        <td>${estudiante.representante}</td>
-                        <td>${estudiante.ci_representante}</td>
-                        <td>${estudiante.direccion}</td>
-                        <td>${estudiante.tlf}</td>
-                    `;
-                });
+    // Capturar el evento submit del formulario
+    formBoletines.addEventListener('submit', function(event) {
+        event.preventDefault();  // Evitar el envío tradicional del formulario
 
-                if ($.fn.DataTable.isDataTable('#students-table')) {
-                    $('#students-table').DataTable().clear().destroy();
+        if (currentEstudianteId) {
+            const formData = new FormData(formBoletines);  // Recoger los datos del formulario
+            
+            // Enviar la solicitud POST para generar el boletín
+            fetch(`/generar-boletin-1er-momento-preescolar/${currentEstudianteId}/`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al generar el boletín.');
                 }
-                studentsTable = initializeDataTable('#students-table');
-                document.querySelector('#students-search').addEventListener('keyup', function () {
-                    studentsTable.search(this.value).draw();
-                });
-
-                studentsTableBody.addEventListener('contextmenu', function (e) {
-                    e.preventDefault();
-                    const row = e.target.closest('tr');
-                    if (row) {
-                        const studentId = row.dataset.studentId;
-                        contextMenu.style.top = `${e.clientY}px`;
-                        contextMenu.style.left = `${e.clientX}px`;
-                        contextMenu.dataset.studentId = studentId;
-                        contextMenu.style.display = 'block';
-                        updateContextMenu();
-                    }
-                });
-
-                document.addEventListener('click', function (e) {
-                    if (contextMenu.style.display === 'block' && !contextMenu.contains(e.target)) {
-                        contextMenu.style.display = 'none';
-                    }
-                });
+                return response.blob();  // Obtener el archivo PDF como blob
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `boletin_${currentEstudianteId}.pdf`;  // Nombre del archivo PDF
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
             })
             .catch(error => {
                 console.error('Error:', error);
+                alert('Error al generar el boletín.');
+            });
+        } else {
+            alert('Error: No se pudo obtener el ID del estudiante.');
+        }
+    });
+
+    // Asegurar que al hacer clic fuera del modal, este se cierre
+    window.addEventListener('click', function(event) {
+        if (event.target === boletinesModal) {
+            closeBoletinesModal();
+        }
+    });
+
+    // Encapsulamos el código de búsqueda y filtro de estudiantes
+    const boletinesLink = document.getElementById('reportsLink'); // Asegúrate de que el id coincida con el HTML
+    const boletinesWidget = document.getElementById('boletines-widget');
+
+    if (boletinesWidget) boletinesWidget.style.display = 'none';
+
+    // Función para mostrar el widget de boletines
+    const showBoletinesWidget = () => {
+        hideAllWidgets(); // Oculta todos los widgets
+        if (boletinesWidget) boletinesWidget.style.display = 'block';
+        initializeBoletinesWidget(); // Inicializa el widget de boletines
+    };
+
+    // Evento para mostrar el widget de boletines al hacer clic en el enlace correspondiente
+    if (boletinesLink) {
+        boletinesLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showBoletinesWidget();
+        });
+    }
+
+    // Inicialización del widget de boletines
+    let boletinesWidgetInitialized = false;
+
+    function initializeBoletinesWidget() {
+        if (boletinesWidgetInitialized) {
+            // Ya inicializado, no hacemos nada
+            return;
+        }
+        boletinesWidgetInitialized = true;
+
+        const buscarInput = document.getElementById('buscar-input');
+        if (!buscarInput) {
+            console.error('No se encontró el input de búsqueda "buscar-input".');
+            return;
+        }
+
+        buscarInput.addEventListener('input', function() {
+            const query = buscarInput.value.trim();
+            filterAndRenderStudents(query);  // Buscar estudiantes mientras se escribe
+        });
+
+        // Cargar todos los estudiantes inicialmente
+        fetchEstudiantes();
+    }
+
+    // Función para hacer fetch con token de autenticación
+    function fetchWithToken(url, options = {}) {
+        const token = localStorage.getItem('access_token');
+        if (token) {
+            options.headers = {
+                ...options.headers,
+                'Authorization': `Bearer ${token}`
+            };
+        }
+        return fetch(url, options);
+    }
+
+    // Función para obtener estudiantes y filtrar resultados en tiempo real
+    function fetchEstudiantes(query = '') {
+        let url = '/get-estudiantes/';
+        fetchWithToken(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Error en la solicitud: ${response.status}`);
+                }
+                return response.json().catch(err => {
+                    throw new Error('Error al analizar JSON: ' + err.message);
+                });
+            })
+            .then(data => {
+                try {
+                    if (!data || !data.estudiantes) {
+                        throw new Error('La estructura de datos no es la esperada');
+                    }
+
+                    estudiantesData = data.estudiantes; // Guardamos los estudiantes globalmente
+
+                    populateGradeDropdown(estudiantesData); // Poblamos el dropdown de grados
+
+                    filterAndRenderStudents(); // Renderizamos todos los estudiantes inicialmente
+                } catch (error) {
+                    console.error('Error al procesar los estudiantes:', error);
+                    alert('Error al procesar los estudiantes: ' + error.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error al obtener estudiantes:', error);
+                alert('Error al obtener estudiantes: ' + error.message);
             });
     }
 
-    function resetStudentTable() {
-        const studentsTableBody = document.querySelector('#students-table tbody');
-        studentsTableBody.innerHTML = '';
-        if ($.fn.DataTable.isDataTable('#students-table')) {
-            $('#students-table').DataTable().clear().destroy();
+    // Función para configurar la búsqueda y los filtros
+    function setupSearchAndFilters() {
+        const searchInput = document.getElementById('students-search');
+        const gradeDropdown = document.getElementById('filter-grade-boletines');
+
+        // Configuración del dropdown de grado
+        gradeDropdown.addEventListener('change', function() {
+            selectedGrade = gradeDropdown.value; // Actualizamos el grado seleccionado
+            filterAndRenderStudents(); // Filtrar estudiantes por nombre y grado
+        });
+
+        searchInput.addEventListener('input', function() {
+            filterAndRenderStudents(); // Filtrar estudiantes por nombre y grado
+        });
+    }
+
+    // Función para filtrar y renderizar los estudiantes según el grado y nombre
+    function filterAndRenderStudents(query = '') {
+        let filteredStudents = estudiantesData;
+
+        // Filtrar por grado si se ha seleccionado uno
+        if (selectedGrade) {
+            filteredStudents = filteredStudents.filter(estudiante =>
+                estudiante.grado.toLowerCase() === selectedGrade.toLowerCase()
+            );
         }
+
+        // Filtrar por nombre
+        if (query) {
+            filteredStudents = filteredStudents.filter(estudiante =>
+                estudiante.apellidos_nombres.toLowerCase().includes(query.toLowerCase())
+            );
+        }
+
+        // Renderizar los estudiantes filtrados
+        renderStudentsTable(filteredStudents);
     }
 
-    function updateContextMenu() {
-        const generateCertificate = document.getElementById('generateCertificate');
-        generateCertificate.textContent = 'Generar Boletín';
-        generateCertificate.onclick = function (e) {
-            const studentId = contextMenu.dataset.studentId;
+    // Función para llenar el dropdown con los grados disponibles
+    function populateGradeDropdown(estudiantes) {
+        const gradeDropdown = document.getElementById('filter-grade-boletines');
+        const uniqueGrades = [...new Set(estudiantes.map(estudiante => estudiante.grado))]; // Grados únicos
+        gradeDropdown.innerHTML = '<option value="">Todos los Grados</option>'; // Opción por defecto
 
-            // Crear un formulario oculto para enviar los datos por POST
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `/generar-boletin-1er-momento-preescolar/${studentId}/`;
-
-            // Agregar el token CSRF al formulario
-            const csrfInput = document.createElement('input');
-            csrfInput.type = 'hidden';
-            csrfInput.name = 'csrfmiddlewaretoken';
-            csrfInput.value = csrftoken;
-            form.appendChild(csrfInput);
-
-            // Agregar los datos del boletín al formulario
-            const convertNewLinesToDelimiter = (str) => str.replace(/\n/g, ';');
-
-            const data = {
-                formacionPersonal: convertNewLinesToDelimiter(document.getElementById('formacionPersonal').value),
-                relacionAmbiente: convertNewLinesToDelimiter(document.getElementById('relacionAmbiente').value),
-                comunicacionRepresentacion: convertNewLinesToDelimiter(document.getElementById('comunicacionRepresentacion').value),
-                sugerencias: convertNewLinesToDelimiter(document.getElementById('sugerencias').value),
-                diasHabiles: document.getElementById('diasHabiles').value,
-                asistencias: document.getElementById('asistencias').value,
-                inasistencias: document.getElementById('inasistencias').value
-            };
-
-            for (const key in data) {
-                if (data.hasOwnProperty(key)) {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = key;
-                    input.value = data[key];
-                    form.appendChild(input);
-                }
-            }
-
-            // Agregar el formulario al cuerpo del documento y enviarlo
-            document.body.appendChild(form);
-            form.submit();
-
-            contextMenu.style.display = 'none';
-        };
+        uniqueGrades.forEach(grado => {
+            const option = document.createElement('option');
+            option.value = grado;
+            option.textContent = grado;
+            gradeDropdown.appendChild(option);
+        });
     }
+
+    // Función para renderizar la tabla de estudiantes
+    function renderStudentsTable(students) {
+        const tbody = document.querySelector('#boletines-table tbody');
+        tbody.innerHTML = '';  // Limpiar la tabla antes de renderizar los nuevos datos
+
+        students.forEach(student => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${student.id || ''}</td>
+                <td>${student.ci || ''}</td>
+                <td>${student.apellidos_nombres || ''}</td>
+                <td>${student.grado || ''}</td>
+                <td>${student.seccion || ''}</td>
+                <td>${student.sexo || ''}</td>
+                <td>${student.edad || ''}</td>
+                <td>${student.lugar_nac || ''}</td>
+                <td>${student.fecha_nac || ''}</td>
+                <td>${student.representante || ''}</td>
+                <td>${student.ci_representante || ''}</td>
+                <td>${student.direccion || ''}</td>
+                <td>${student.tlf || ''}</td>
+                <td class="actions-cell">
+                    <button class="generate-boletin" data-momento="1er Momento" data-id="${student.id || ''}">1er Momento</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Llamamos a la función para configurar búsqueda y filtros
+    setupSearchAndFilters();
 });

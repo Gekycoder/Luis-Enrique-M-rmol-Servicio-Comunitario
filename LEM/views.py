@@ -104,6 +104,8 @@ def get_user_data(request):
         return JsonResponse({'success': False, 'error': 'Usuario no encontrado'}, status=404)
 
 
+
+
 logger = logging.getLogger(__name__)
 
 def normalizar_telefono(telefono):

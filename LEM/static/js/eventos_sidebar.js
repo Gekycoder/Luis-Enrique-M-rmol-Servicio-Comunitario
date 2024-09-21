@@ -1,638 +1,325 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const modals = document.querySelectorAll('.modal'); // Seleccionar todos los modales
 
-  const spanishTranslation = {
-    
-    "sProcessing":     "Procesando...",
-    "sLengthMenu":     "Mostrar _MENU_ registros",
-    "sZeroRecords":    "No se encontraron resultados",
-    "sEmptyTable":     "Ningún dato disponible en esta tabla",
-    "sInfo":           "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-    "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
-    "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
-    "sInfoPostFix":    "",
-    "sSearch":         "Buscar:",
-    "sUrl":            "",
-    "sInfoThousands":  ",",
-    "sLoadingRecords": "Cargando...",
-    "oPaginate": {
-      "sFirst":    "Primero",
-      "sLast":     "Último",
-      "sNext":     "Siguiente",
-      "sPrevious": "Anterior"
-    },
-    "oAria": {
-      "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
-      "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-    }
-  };
+    const addUserLink = document.getElementById('addUser');
+    const editUserLink = document.getElementById('editUser');
+    const deleteUserLink = document.getElementById('deleteUser');
+    const addUserWidget = document.getElementById('widget-addUser');
+    const editUserWidget = document.getElementById('widget-editUser');
+    const deleteUserWidget = document.getElementById('widget-deleteUser');
+    const addStudentLink = document.getElementById('addStudent');
+    const editStudentLink = document.getElementById('editStudent');
+    const deleteStudentLink = document.getElementById('deleteStudent');
+    const addStudentWidget = document.getElementById('widget-addStudent');
+    const editStudentWidget = document.getElementById('widget-editStudent');
+    const deleteStudentWidget = document.getElementById('widget-deleteStudent');
 
-  function initializeDataTable(tableSelector) {
-    console.log("Initializing DataTable"); // Depuración
-    return $(tableSelector).DataTable({
-        language: spanishTranslation,
-        paging: true,
-        lengthChange: true,
-        searching: true,
-        ordering: true,
-        info: true,
-        autoWidth: false,
-        responsive: true,
-        initComplete: function() {
-            // Agregar filtros en las cabeceras de columnas de Grado y Sección
-            this.api().columns([3, 4]).every(function() { // Índices de columna 3: Grado, 4: Sección
-                const column = this;
-                const select = $('<select><option value="">Filtrar</option></select>')
-                    .appendTo($(column.header()).empty())
-                    .on('change', function() {
-                        const val = $.fn.dataTable.util.escapeRegex($(this).val());
-                        column
-                            .search(val ? '^' + val + '$' : '', true, false)
-                            .draw();
-                    });
+    // **Función para ocultar todos los widgets**
+    const hideAllWidgets = () => {
+        modals.forEach(modal => modal.style.display = 'none');
+    };
 
-                // Poblar el select con valores únicos de la columna
-                column.data().unique().sort().each(function(d, j) {
-                    select.append('<option value="' + d + '">' + d + '</option>');
-                });
-            });
-        }
-    });
-}
-
-  const planningLink = document.getElementById('planning');
-  const usersLink = document.getElementById('users');
-  const studentsLink = document.getElementById('students');
-  const retiroLink = document.getElementById('retiro-link');
-  const estudioLink = document.getElementById('estudio-link');
-  const asistenciaLink = document.getElementById('asistencia-link');
-  const inscripcionLink = document.getElementById('inscripcion-link');
-  const addUserLink = document.getElementById('addUser');
-  const editUserLink = document.getElementById('editUser');
-  const deleteUserLink = document.getElementById('deleteUser');
-  const statusWidget = document.getElementById('status-widget');
-  const remindersWidget = document.getElementById('reminders-widget');
-  const calendarWidget = document.getElementById('calendar-widget');
-  const usersWidget = document.getElementById('user-widget');
-  const studentsWidget = document.getElementById('students-widget');
-  const addUserWidget = document.getElementById('widget-addUser');
-  const editUserWidget = document.getElementById('widget-editUser');
-  const deleteUserWidget = document.getElementById('widget-deleteUser');
-  const teacherAssignmentLink = document.getElementById('assignTeacher');
-  const teacherWidget = document.getElementById('teacher-widget');
-  const addStudentLink = document.getElementById('addStudent');
-  const editStudentLink = document.getElementById('editStudent');
-  const deleteStudentLink = document.getElementById('deleteStudent');
-  const addStudentWidget = document.getElementById('widget-addStudent');
-  const editStudentWidget = document.getElementById('widget-editStudent');
-  const deleteStudentWidget = document.getElementById('widget-deleteStudent');
-  const teacherTableBody = document.getElementById('teacherTable').querySelector('tbody');
-
-  const hideAllWidgets = () => {
-      if (statusWidget) statusWidget.style.display = 'none';
-      if (remindersWidget) remindersWidget.style.display = 'none';
-      if (calendarWidget) calendarWidget.style.display = 'none';
-      if (usersWidget) usersWidget.style.display = 'none';
-      if (studentsWidget) studentsWidget.style.display = 'none';
-      if (addUserWidget) addUserWidget.style.display = 'none';
-      if (editUserWidget) editUserWidget.style.display = 'none';
-      if (deleteUserWidget) deleteUserWidget.style.display = 'none';
-      if (teacherWidget) teacherWidget.style.display = 'none'; 
-
-      if (addStudentWidget) addStudentWidget.style.display = 'none';
-      if (editStudentWidget) editStudentWidget.style.display = 'none';
-      if (deleteStudentWidget) deleteStudentWidget.style.display = 'none';
-  };
-
-  const showUsersWidget = () => {
-      hideAllWidgets();
-      if (usersWidget) usersWidget.style.display = 'block';
-      fetchUserData();
-  };
-
-  function fetchUserData() {
-      fetch('/get-usuarios/')
-          .then(response => {
-              if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-              return response.json();
-          })
-          .then(data => {
-              if (data.usuarios) {
-                  updateUserTable(data.usuarios);
-              } else {
-                  console.error("Unexpected data format:", data);
-              }
-          })
-          .catch(error => {
-              console.error('Error fetching users:', error);
-          });
-  }
-
-  function updateUserTable(usuarios) {
-      const userTableBody = document.querySelector('#user-table tbody');
-      userTableBody.innerHTML = '';
-      usuarios.forEach(usuario => {
-          const row = userTableBody.insertRow();
-          row.innerHTML = `
-              <td>${usuario.id}</td>
-              <td>${usuario.nombres}</td>
-              <td>${usuario.apellidos}</td>
-              <td>${usuario.cedula}</td>
-              <td>${usuario.usuario}</td>
-              <td>${usuario.contrasena}</td>
-              <td>${usuario.correo}</td>
-              <td>${usuario.telefonos}</td>
-              <td>${usuario.direccion}</td>
-              <td>${usuario.rol}</td>
-          `;
-      });
-
-      const usersTable = initializeDataTable('#user-table');
-      document.querySelector('#users-search').addEventListener('keyup', function() {
-          usersTable.search(this.value).draw();
-      });
-  }
-
-  if (usersLink) {
-      usersLink.addEventListener('click', (e) => {
-          e.preventDefault();
-          showUsersWidget();
-      });
-  }
-
-  const determineActiveTab = () => {
-      const links = [studentsLink, retiroLink, estudioLink, asistenciaLink, inscripcionLink];
-      for (let link of links) {
-          if (link.classList.contains('active')) {
-              return link.id.replace('-link', '');
-          }
-      }
-      return 'estudiantes';
-  };
-
-  const showStudentsWidget = () => {
-      hideAllWidgets();
-      if (studentsWidget) studentsWidget.style.display = 'block';
-  };
-
-  const updateContextMenu = () => {
-      const generateCertificate = document.getElementById('generateCertificate');
-      if (currentTab === 'estudio') {
-          generateCertificate.textContent = 'Generar Constancia de Estudio';
-          generateCertificate.onclick = function(e) {
-              const studentId = contextMenu.dataset.studentId;
-              window.location.href = `/generar-constancia/${studentId}/`;
-              contextMenu.style.display = 'none';
-          };
-      } else if (currentTab === 'asistencia') {
-          generateCertificate.textContent = 'Generar Constancia de Asistencia';
-          generateCertificate.onclick = function(e) {
-              const studentId = contextMenu.dataset.studentId;
-              window.location.href = `/generar-constancia-asistencia/${studentId}/`;
-              contextMenu.style.display = 'none';
-          };
-      } else if (currentTab === 'inscripcion') {
-          generateCertificate.textContent = 'Generar Constancia de Inscripción';
-          generateCertificate.onclick = function(e) {
-              const studentId = contextMenu.dataset.studentId;
-              window.location.href = `/generar-constancia-inscripcion/${studentId}/`;
-              contextMenu.style.display = 'none';
-          };
-      } else if (currentTab === 'retiro') {
-          generateCertificate.textContent = 'Generar Constancia de Retiro';
-          generateCertificate.onclick = function(e) {
-              const studentId = contextMenu.dataset.studentId;
-              window.location.href = `/generar-constancia-retiro/${studentId}/`;
-              contextMenu.style.display = 'none';
-          };
-      }
-  };
-
-  let currentTab = determineActiveTab();
-
-  [retiroLink, estudioLink, asistenciaLink, inscripcionLink].forEach(link => {
-      link.addEventListener('click', (e) => {
-          e.preventDefault();
-          currentTab = e.target.id.replace('-link', '');
-          showStudentsWidget();
-          
-          fetch('/get-estudiantes/')
-              .then(response => response.json())
-              .then(data => {
-                  const studentsTableBody = document.querySelector('#students-table tbody');
-                  studentsTableBody.innerHTML = '';
-  
-                  data.estudiantes.forEach(estudiante => {
-                      const row = studentsTableBody.insertRow();
-                      row.setAttribute('data-student-id', estudiante.id);
-                      row.innerHTML = `
-                          <td>${estudiante.id}</td>
-                          <td>${estudiante.ci}</td>
-                          <td>${estudiante.apellidos_nombres}</td>
-                          <td>${estudiante.grado}</td>
-                          <td>${estudiante.seccion}</td>
-                          <td>${estudiante.sexo}</td>
-                          <td>${estudiante.edad}</td>
-                          <td>${estudiante.lugar_nac}</td>
-                          <td>${estudiante.fecha_nac}</td>
-                          <td>${estudiante.representante}</td>
-                          <td>${estudiante.ci_representante}</td>
-                          <td>${estudiante.direccion}</td>
-                          <td>${estudiante.tlf}</td>
-                          <td>${estudiante.notas}</td>
-                      `;
-                  });
-  
-                  const studentsTable = initializeDataTable('#students-table');
-  
-                  document.querySelector('#students-search').addEventListener('keyup', function() {
-                      studentsTable.search(this.value).draw();
-                  });
-  
-                  // Manejar menú contextual
-                  studentsTableBody.addEventListener('contextmenu', function(e) {
-                      e.preventDefault();
-                      const row = e.target.closest('tr');
-                      if (row) {
-                          const studentId = row.dataset.studentId;
-                          contextMenu.style.top = `${e.clientY}px`;
-                          contextMenu.style.left = `${e.clientX}px`;
-                          contextMenu.dataset.studentId = studentId;
-                          contextMenu.style.display = 'block';
-                          updateContextMenu();
-                      }
-                  });
-  
-                  // Ocultar menú contextual al hacer clic en otro lugar
-                  document.addEventListener('click', function(e) {
-                      if (contextMenu.style.display === 'block' && !contextMenu.contains(e.target)) {
-                          contextMenu.style.display = 'none';
-                      }
-                  });
-              })
-              .catch(error => {
-                  console.error('Error:', error);
-              });
-      });
-  });
-  
-
-
-  // Agregar y gestionar usuarios
-  if (addUserLink) {
-    addUserLink.addEventListener('click', (e) => {
-        e.preventDefault();
+    // Función para abrir un modal
+    const openModal = (modal) => {
         hideAllWidgets();
-        if (addUserWidget) addUserWidget.style.display = 'block';
-    });
-}
+        if (modal) modal.style.display = 'block';
+    };
 
-if (editUserLink) {
-    editUserLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        hideAllWidgets();
-        if (editUserWidget) editUserWidget.style.display = 'block';
-    });
-}
-
-if (deleteUserLink) {
-    deleteUserLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        hideAllWidgets();
-        if (deleteUserWidget) deleteUserWidget.style.display = 'block';
-    });
-}
-
-if (document.getElementById('addUserForm')) {
-    document.getElementById('addUserForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        fetch('/agregar-usuario/', {
-            method: 'POST',
-            body: formData,
-        }).then(response => response.json()).then(data => {
-            if (data.success) {
-                alert('Usuario agregado exitosamente');
-                location.reload();
-            } else {
-                alert('Error al agregar usuario: ' + data.error);
-            }
-        }).catch(error => {
-            console.error('Error:', error);
-            alert('Error al agregar usuario: ' + error);
+    // **Eventos para agregar y gestionar usuarios**
+    if (addUserLink) {
+        addUserLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            openModal(addUserWidget);
         });
-    });
-}
+    }
 
+    if (editUserLink) {
+        editUserLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            openModal(editUserWidget);
+        });
+    }
+
+    if (deleteUserLink) {
+        deleteUserLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            openModal(deleteUserWidget);
+        });
+    }
+
+    // **Manejo del formulario para agregar usuario**
+    if (document.getElementById('addUserForm')) {
+        document.getElementById('addUserForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            fetch('/agregar-usuario/', {
+                method: 'POST',
+                body: formData,
+            }).then(response => response.json()).then(data => {
+                if (data.success) {
+                    alert('Usuario agregado exitosamente');
+                    location.reload();
+                } else {
+                    alert('Error al agregar usuario: ' + data.error);
+                }
+            }).catch(error => {
+                console.error('Error:', error);
+                alert('Error al agregar usuario: ' + error);
+            });
+        });
+    }
+
+    // **Manejo del formulario para editar usuario**
 if (document.getElementById('editUserForm')) {
-    document.getElementById('editUserForm').addEventListener('submit', function(e) {
+    const editUserForm = document.getElementById('editUserForm');
+    const userIdField = document.getElementById('userId');
+
+    // Listener para el evento 'submit' del formulario
+    editUserForm.addEventListener('submit', function(e) {
         e.preventDefault();
+        console.log('Formulario de edición enviado.');
+
         const formData = new FormData(this);
         fetch('/modificar-usuario/', {
             method: 'POST',
             body: formData,
-        }).then(response => response.json()).then(data => {
+        })
+        .then(response => response.json())
+        .then(data => {
             if (data.success) {
                 alert('Usuario modificado exitosamente');
                 location.reload();
             } else {
                 alert('Error al modificar usuario: ' + data.error);
             }
+        })
+        .catch(error => {
+            console.error('Error en la solicitud:', error);
+            alert('Ocurrió un error al procesar la solicitud.');
         });
     });
 
-    document.getElementById('userId').addEventListener('change', function() {
-      const userId = this.value;
-      fetch(`/get-usuario/${userId}/`)
-          .then(response => response.json())
-          .then(data => {
-              if (data.usuario) {
-                  document.getElementById('userNombres').value = data.usuario.nombres;
-                  document.getElementById('userApellidos').value = data.usuario.apellidos;
-                  document.getElementById('userCedula').value = data.usuario.cedula;
-                  document.getElementById('userUsuario').value = data.usuario.usuario;
-                  document.getElementById('userContrasena').value = data.usuario.contrasena;
-                  document.getElementById('userCorreo').value = data.usuario.correo;
-                  document.getElementById('userTelefonos').value = data.usuario.telefonos;
-                  document.getElementById('userDireccion').value = data.usuario.direccion;
-                  document.getElementById('userRol').value = data.usuario.rol;
-              } else {
-                  alert('Usuario no encontrado');
-              }
-          })
-          .catch(error => {
-              console.error('Error al obtener los datos del usuario:', error);
-              alert('Error al obtener los datos del usuario');
-          });
-  });  
-  
-}
+    // Listener para el evento 'change' en el campo 'userId'
+    userIdField.addEventListener('change', function() {
+        const userId = this.value.trim();
+        console.log(`Cambio detectado en userId: ${userId}`);
 
-if (document.getElementById('deleteUserForm')) {
-    document.getElementById('deleteUserForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        fetch('/eliminar-usuario/', {
-            method: 'POST',
-            body: formData,
-        }).then(response => response.json()).then(data => {
-            if (data.success) {
-                alert('Usuario eliminado exitosamente');
-                location.reload();
-            } else {
-                alert('Error al eliminar usuario: ' + data.error);
-            }
-        });
-    });
-}
+        if (userId === '') {
+            alert('Por favor, ingresa un ID de usuario válido.');
+            limpiarCamposUsuario();
+            return;
+        }
 
-const logoutButtons = document.querySelectorAll('#logout, #logout-profile');
-const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-logoutButtons.forEach(button => {
-    button.addEventListener('click', function(e) {
-        e.preventDefault();
-        fetch('/logout/', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': csrfToken,
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-        }).then(response => {
-            if (response.ok) {
-                window.location.href = '/login';
-            } else {
-                console.error('Error al cerrar sesión');
-            }
-        }).catch(error => console.error('Error:', error));
-    });
-});
-
-    // Mostrar el widget de docentes
-    const showTeacherWidget = () => {
-        hideAllWidgets();
-        if (teacherWidget) teacherWidget.style.display = 'block';
-        fetchTeacherData(); // Cargar los datos de los docentes
-    };
-
-    // Agregar eventos para mostrar los widgets correspondientes
-    if (teacherAssignmentLink) {
-        teacherAssignmentLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            showTeacherWidget();
-        });
-    }
-
-    // Función para cargar los datos de los docentes desde el servidor
-    function fetchTeacherData() {
-        console.log('Cargando datos de docentes desde el servidor');  // Depuración
-        fetch('/get-docentes/')
+        fetch(`/get-usuario/${userId}/`)
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('Error en la respuesta del servidor');
+                    throw new Error('Respuesta de red no ok');
                 }
                 return response.json();
             })
             .then(data => {
-                console.log('Datos de docentes recibidos:', data);  // Depuración
-                populateTeacherTable(data.docentes);  // Poblar la tabla con los datos recibidos
+                if (data.usuario) {
+                    console.log('Datos del usuario recibidos:', data.usuario);
+                    document.getElementById('userNombres').value = data.usuario.nombres || '';
+                    document.getElementById('userApellidos').value = data.usuario.apellidos || '';
+                    document.getElementById('userCedula').value = data.usuario.cedula || '';
+                    document.getElementById('userUsuario').value = data.usuario.usuario || '';
+                    document.getElementById('userContrasena').value = data.usuario.contrasena || '';
+                    document.getElementById('userCorreo').value = data.usuario.correo || '';
+                    document.getElementById('userTelefonos').value = data.usuario.telefonos || '';
+                    document.getElementById('userDireccion').value = data.usuario.direccion || '';
+                    document.getElementById('userRol').value = data.usuario.rol || '';
+                    
+                } else {
+                    alert('Usuario no encontrado');
+                    limpiarCamposUsuario();
+                }
             })
-            .catch(error => console.error('Error al cargar los datos de docentes:', error));
-    }
-
-    // Función para poblar la tabla con los docentes
-function populateTeacherTable(docentes) {
-    const teacherTableBody = document.getElementById('teacherTable').querySelector('tbody');
-    if (!teacherTableBody) {
-        console.error('No se encontró el cuerpo de la tabla de docentes');
-        return;
-    }
-
-    // Limpiar la tabla antes de poblarla
-    teacherTableBody.innerHTML = '';
-
-    const grados = ['I', 'II', 'III', '1°', '2°', '3°', '4°', '5°', '6°'];
-    const secciones = ['A', 'B', 'U'];
-
-    // Agregar filas con los datos de los docentes
-    docentes.forEach(teacher => {
-        const selectedGrade = teacher.grado || ''; // Grado asignado
-        const selectedSection = teacher.seccion || ''; // Sección asignada
-
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${teacher.id}</td>
-            <td>${teacher.nombres}</td>
-            <td>${teacher.apellidos}</td>
-            <td>
-                <select class="grade-select" data-docente-id="${teacher.id}">
-                    <option value="">Seleccione un grado</option>
-                    ${grados.map(grado => `<option value="${grado}" ${grado === selectedGrade ? 'selected' : ''}>${grado}</option>`).join('')}
-                </select>
-            </td>
-            <td>
-                <select class="section-select" data-docente-id="${teacher.id}">
-                    <option value="">Seleccione una sección</option>
-                    ${secciones.map(seccion => `<option value="${seccion}" ${seccion === selectedSection ? 'selected' : ''}>${seccion}</option>`).join('')}
-                </select>
-            </td>
-            <td>
-                <button class="assign-grade" data-docente-id="${teacher.id}">Asignar</button>
-            </td>
-        `;
-        teacherTableBody.appendChild(row);
+            .catch(error => {
+                console.error('Error al obtener los datos del usuario:', error);
+                alert('Error al obtener los datos del usuario');
+            });
     });
 
-    console.log('Tabla de docentes poblada con nuevos datos');
+    // Listener para detectar la tecla Enter en el campo 'userId'
+    userIdField.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // Evita que el formulario se envíe
+            console.log('Tecla Enter detectada en userId.');
+            this.blur(); // Quita el foco del campo para que el evento 'change' se dispare
+        }
+    });
 }
 
-document.addEventListener('click', function (event) {
-    if (event.target.classList.contains('assign-grade')) {
-        const docenteId = event.target.dataset.docenteId;
-        const selectedGrade = document.querySelector(`.grade-select[data-docente-id="${docenteId}"]`).value;
-        const selectedSection = document.querySelector(`.section-select[data-docente-id="${docenteId}"]`).value;
 
-        console.log(`Asignando grado ${selectedGrade} y sección ${selectedSection} al docente ${docenteId}`);  // Depuración
-
-        fetch('/asignar-docente/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value
-            },
-            body: JSON.stringify({
-                docente_id: docenteId,
-                grado: selectedGrade,
-                seccion: selectedSection
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log("Respuesta del servidor:", data);  // Depuración
-            if (data.success) {
-                alert('Docente asignado correctamente.');
-            } else {
-                // Si el servidor devuelve un error relacionado con el límite de docentes
-                if (data.error && data.error.includes('asignados')) {
-                    alert(data.error);
+    // **Manejo del formulario para eliminar usuario**
+    if (document.getElementById('deleteUserForm')) {
+        document.getElementById('deleteUserForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            fetch('/eliminar-usuario/', {
+                method: 'POST',
+                body: formData,
+            }).then(response => response.json()).then(data => {
+                if (data.success) {
+                    alert('Usuario eliminado exitosamente');
+                    location.reload();
                 } else {
-                    alert('Hubo un error al asignar al docente.');
+                    alert('Error al eliminar usuario: ' + data.error);
                 }
-            }
-        })
-        .catch(error => {
-            console.error('Error al asignar el docente:', error);
+            });
         });
     }
-});
-    
-    
-// Agregar y gestionar estudiantes
-if (addStudentLink) {
-    addStudentLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        hideAllWidgets();
-        if (addStudentWidget) addStudentWidget.style.display = 'block';
-    });
-}
 
-if (editStudentLink) {
-    editStudentLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        hideAllWidgets();
-        if (editStudentWidget) editStudentWidget.style.display = 'block';
+    // **Manejo de los botones de logout**
+    const logoutButtons = document.querySelectorAll('#logout, #logout-profile');
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    logoutButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            fetch('/logout/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            }).then(response => {
+                if (response.ok) {
+                    window.location.href = '/login';
+                } else {
+                    console.error('Error al cerrar sesión');
+                }
+            }).catch(error => console.error('Error:', error));
+        });
     });
-}
 
-if (deleteStudentLink) {
-    deleteStudentLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        hideAllWidgets();
-        if (deleteStudentWidget) deleteStudentWidget.style.display = 'block';
-    });
-}
+    // **Eventos para agregar y gestionar estudiantes**
+    if (addStudentLink) {
+        addStudentLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            openModal(addStudentWidget);
+        });
+    }
 
-document.addEventListener('DOMContentLoaded', () => {
+    if (editStudentLink) {
+        editStudentLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            openModal(editStudentWidget);
+        });
+    }
+
+    if (deleteStudentLink) {
+        deleteStudentLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            openModal(deleteStudentWidget);
+        });
+    }
+
+    // **Manejo del select de grado y sección para agregar estudiante**
     const gradoSelect = document.getElementById('gradoSelect');
     const seccionSelect = document.getElementById('seccionSelect');
 
-    const seccionesOptions = {
-        'I': ['U'],
-        'II': ['U'],
-        'III': ['A', 'B'],
-        '1°': ['A', 'B'],
-        '2°': ['A', 'B'],
-        '3°': ['A', 'B'],
-        '4°': ['A', 'B'],
-        '5°': ['A', 'B'],
-        '6°': ['A', 'B']
-    };
+    if (gradoSelect && seccionSelect) {
+        const seccionesOptions = {
+            'I': ['U'],
+            'II': ['U'],
+            'III': ['A', 'B'],
+            '1°': ['A', 'B'],
+            '2°': ['A', 'B'],
+            '3°': ['A', 'B'],
+            '4°': ['A', 'B'],
+            '5°': ['A', 'B'],
+            '6°': ['A', 'B']
+        };
 
-    gradoSelect.addEventListener('change', function() {
-        const selectedGrado = this.value;
+        gradoSelect.addEventListener('change', function() {
+            const selectedGrado = this.value;
 
-        // Limpiar las opciones actuales
-        seccionSelect.innerHTML = '<option value="" disabled selected>Sección</option>';
+            // Limpiar las opciones actuales
+            seccionSelect.innerHTML = '<option value="" disabled selected>Sección</option>';
 
-        // Obtener las opciones correspondientes según el grado seleccionado
-        const opciones = seccionesOptions[selectedGrado] || [];
+            // Obtener las opciones correspondientes según el grado seleccionado
+            const opciones = seccionesOptions[selectedGrado] || [];
 
-        // Añadir las nuevas opciones
-        opciones.forEach(opcion => {
-            const optionElement = document.createElement('option');
-            optionElement.value = opcion;
-            optionElement.textContent = `Sección ${opcion}`;
-            seccionSelect.appendChild(optionElement);
-        });
+            // Añadir las nuevas opciones
+            opciones.forEach(opcion => {
+                const optionElement = document.createElement('option');
+                optionElement.value = opcion;
+                optionElement.textContent = `Sección ${opcion}`;
+                seccionSelect.appendChild(optionElement);
+            });
 
-        // Si solo hay una opción, seleccionarla automáticamente
-        if (opciones.length === 1) {
-            seccionSelect.value = opciones[0];
-        }
-    });
-});
-
-
-if (document.getElementById('addStudentForm')) {
-    document.getElementById('addStudentForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-
-        fetch('/agregar-estudiante/', {
-            method: 'POST',
-            body: formData,
-        }).then(response => response.json()).then(data => {
-            if (data.success) {
-                alert('Estudiante agregado exitosamente');
-                location.reload();
-            } else {
-                alert('Error al agregar estudiante: ' + data.error);
+            // Si solo hay una opción, seleccionarla automáticamente
+            if (opciones.length === 1) {
+                seccionSelect.value = opciones[0];
             }
-        }).catch(error => {
-            console.error('Error al agregar estudiante:', error);
-            alert('Error al agregar estudiante: ' + error);
         });
-    });
-}
+    }
 
+    // **Manejo del formulario para agregar estudiante**
+    if (document.getElementById('addStudentForm')) {
+        document.getElementById('addStudentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
 
+            fetch('/agregar-estudiante/', {
+                method: 'POST',
+                body: formData,
+            }).then(response => response.json()).then(data => {
+                if (data.success) {
+                    alert('Estudiante agregado exitosamente');
+                    location.reload();
+                } else {
+                    alert('Error al agregar estudiante: ' + data.error);
+                }
+            }).catch(error => {
+                console.error('Error al agregar estudiante:', error);
+                alert('Error al agregar estudiante: ' + error);
+            });
+        });
+    }
+
+    // **Manejo del formulario para editar estudiante**
 if (document.getElementById('editStudentForm')) {
-    document.getElementById('editStudentForm').addEventListener('submit', function(e) {
+    const editStudentForm = document.getElementById('editStudentForm');
+    const studentIdField = document.getElementById('studentId');
+
+    // Listener para el evento 'submit' del formulario
+    editStudentForm.addEventListener('submit', function(e) {
         e.preventDefault();
+        console.log('Formulario de edición de estudiante enviado.');
+
         const formData = new FormData(this);
         fetch('/modificar-estudiante/', {
             method: 'POST',
             body: formData,
-        }).then(response => response.json()).then(data => {
+        })
+        .then(response => response.json())
+        .then(data => {
             if (data.success) {
                 alert('Estudiante modificado exitosamente');
                 location.reload();
             } else {
                 alert('Error al modificar estudiante: ' + data.error);
             }
+        })
+        .catch(error => {
+            console.error('Error en la solicitud:', error);
+            alert('Ocurrió un error al procesar la solicitud.');
         });
     });
 
-    document.getElementById('studentId').addEventListener('change', function() {
-        const studentId = this.value;
+    // Listener para el evento 'change' en el campo 'studentId'
+    studentIdField.addEventListener('change', function() {
+        const studentId = this.value.trim();
+        console.log(`Cambio detectado en studentId: ${studentId}`);
+
+        if (studentId === '') {
+            alert('Por favor, ingresa un ID de estudiante válido.');
+            limpiarCamposEstudiante();
+            return;
+        }
+
         fetch(`/get-estudiante/${studentId}/`)
             .then(response => {
                 if (!response.ok) {
@@ -642,47 +329,84 @@ if (document.getElementById('editStudentForm')) {
             })
             .then(data => {
                 if (data.estudiante) {
-                    document.getElementById('studentCI').value = data.estudiante.ci;
-                    document.getElementById('studentApellidosNombres').value = data.estudiante.apellidos_nombres;
-                    document.getElementById('studentGrado').value = data.estudiante.grado;
-                    document.getElementById('studentSeccion').value = data.estudiante.seccion;
-                    document.getElementById('studentSexo').value = data.estudiante.sexo;
-                    document.getElementById('studentEdad').value = data.estudiante.edad;
-                    document.getElementById('studentLugarNac').value = data.estudiante.lugar_nac;
-                    document.getElementById('studentFechaNac').value = data.estudiante.fecha_nac;
-                    document.getElementById('studentRepresentante').value = data.estudiante.representante;
-                    document.getElementById('studentCIRepresentante').value = data.estudiante.ci_representante;
-                    document.getElementById('studentDireccion').value = data.estudiante.direccion;
-                    document.getElementById('studentTlf').value = data.estudiante.tlf;
+                    console.log('Datos del estudiante recibidos:', data.estudiante);
+                    document.getElementById('studentCI').value = data.estudiante.ci || '';
+                    document.getElementById('studentApellidosNombres').value = data.estudiante.apellidos_nombres || '';
+                    document.getElementById('studentGrado').value = data.estudiante.grado || '';
+                    document.getElementById('studentSeccion').value = data.estudiante.seccion || '';
+                    document.getElementById('studentSexo').value = data.estudiante.sexo || '';
+                    document.getElementById('studentEdad').value = data.estudiante.edad || '';
+                    document.getElementById('studentLugarNac').value = data.estudiante.lugar_nac || '';
+                    document.getElementById('studentFechaNac').value = data.estudiante.fecha_nac || '';
+                    document.getElementById('studentRepresentante').value = data.estudiante.representante || '';
+                    document.getElementById('studentCIRepresentante').value = data.estudiante.ci_representante || '';
+                    document.getElementById('studentDireccion').value = data.estudiante.direccion || '';
+                    document.getElementById('studentTlf').value = data.estudiante.tlf || '';
                 } else {
                     alert('Estudiante no encontrado');
+                    limpiarCamposEstudiante();
                 }
             })
             .catch(error => {
                 console.error('Error al obtener los datos del estudiante:', error);
+                alert('Error al obtener los datos del estudiante');
             });
     });
-    
+
+    // Listener para detectar la tecla Enter en el campo 'studentId'
+    studentIdField.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // Evita que el formulario se envíe
+            console.log('Tecla Enter detectada en studentId.');
+            this.blur(); // Quita el foco del campo para que el evento 'change' se dispare
+        }
+    });
 }
 
-if (document.getElementById('deleteStudentForm')) {
-    document.getElementById('deleteStudentForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        fetch('/eliminar-estudiante/', {
-            method: 'POST',
-            body: formData,
-        }).then(response => response.json()).then(data => {
-            if (data.success) {
-                alert('Estudiante eliminado exitosamente');
-                location.reload();
-            } else {
-                alert('Error al eliminar estudiante: ' + data.error);
+
+    // **Manejo del formulario para eliminar estudiante**
+    if (document.getElementById('deleteStudentForm')) {
+        document.getElementById('deleteStudentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            fetch('/eliminar-estudiante/', {
+                method: 'POST',
+                body: formData,
+            }).then(response => response.json()).then(data => {
+                if (data.success) {
+                    alert('Estudiante eliminado exitosamente');
+                    location.reload();
+                } else {
+                    alert('Error al eliminar estudiante: ' + data.error);
+                }
+            });
+        });
+    }
+
+    // **Cerrar los widgets al hacer clic fuera de ellos**
+    document.addEventListener('click', (event) => {
+        modals.forEach(modal => {
+            if (modal.style.display === 'block' && !modal.querySelector('.modal-content').contains(event.target)) {
+                modal.style.display = 'none';
             }
         });
     });
-}
 
+    // Cerrar el modal cuando se hace clic en la "x"
+    const closeButtons = document.querySelectorAll('.close');
+    closeButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            hideAllWidgets();
+        });
+    });
 
-    
+    // **Prevenir el cierre del widget al hacer clic en los enlaces del menú**
+    const menuLinks = [addUserLink, editUserLink, deleteUserLink, addStudentLink, editStudentLink, deleteStudentLink];
+    menuLinks.forEach(link => {
+        if (link) {
+            link.addEventListener('click', (e) => {
+                e.stopPropagation(); // Evita que el clic en el enlace cierre el widget
+            });
+        }
+    });
 });

@@ -57,10 +57,9 @@ body{
     font-family: 'Poppins', sans-serif;
     font-size: 0.88rem;
     user-select: none;
-    overflow-x: hidden;
-
     color: var(--color-dark);
     background-color: var(--color-background);
+    overflow-x: hidden;
 }
 
 /* Esto removerá los botones de desplazamiento */
@@ -191,11 +190,13 @@ aside .toggle .close{
     display: none;
 }
 
-aside .sidebar{
+/* Estilos generales para el sidebar */
+aside .sidebar {
     display: flex;
     flex-direction: column;
     background-color: var(--color-white);
     box-shadow: var(--box-shadow);
+    overflow-x: hidden;
     border-radius: 15px;
     height: 88vh;
     position: relative;
@@ -203,13 +204,18 @@ aside .sidebar{
     transition: all 0.3s ease;
 }
 
-aside .sidebar:hover{
-    box-shadow: none;
+/* Contenido desplazable */
+.scrollable-content {
+    flex-grow: 1;
+    overflow-x: hidden;
+    padding-right: 10px;
 }
 
-aside .sidebar a{
+/* Enlaces del sidebar */
+aside .sidebar a {
     display: flex;
     align-items: center;
+    padding-bottom: 32px;
     color: var(--color-info-dark);
     height: 3.7rem;
     gap: 1rem;
@@ -219,51 +225,87 @@ aside .sidebar a{
     transition: all 0.3s ease;
 }
 
-aside .sidebar a span{
+/* Íconos dentro de los enlaces */
+aside .sidebar a span {
     font-size: 1.6rem;
     transition: all 0.3s ease;
 }
 
-aside .sidebar #logout{
-    position: absolute;
-    bottom: 2rem;
+/* Botón de logout */
+aside .sidebar #logout {
+    margin-top: 0.5em;
+    position: sticky;
+    background-color: #ffffff;
     width: 100%;
 }
 
-aside .sidebar a.active{
+aside .sidebar #logout:hover {
+    position: sticky;
+    background-color: #e4e4e4;
+    width: 100%;
+}
+
+/* Aplicar estilo al botón dentro del formulario */
+.logout-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    margin-bottom: -2.4em;
+    margin-top: -7px;
+    height: 100%;
+    text-align: center;
+    padding-bottom: 1em;
+    transition: all 0.3s ease;
+}
+
+.logout-btn span {
+    font-size: 1.6rem;
+    transition: all 0.3s ease;
+}
+
+.logout-btn h3 {
+    font-weight: 500;
+    font-size: 0.87rem;
+}
+
+/* Estilos adicionales para enlaces activos */
+aside .sidebar a.active {
     width: 100%;
     color: var(--color-primary);
     background-color: var(--color-light);
     margin-left: 0;
 }
 
-aside .sidebar a.active::before{
+aside .sidebar a.active::before {
     content: '';
     width: 6px;
     height: 18px;
     background-color: var(--color-primary);
 }
 
-aside .sidebar a.active span{
+aside .sidebar a.active span {
     color: var(--color-primary);
     margin-left: calc(1rem - 3px);
 }
 
-aside .sidebar a:hover{
+aside .sidebar a:hover {
     color: var(--color-primary);
 }
 
-aside .sidebar a:hover span{
+aside .sidebar a:hover span {
     margin-left: 0.6rem;
 }
 
-aside .sidebar .message-count{
-    background-color: var(--color-lem);
-    padding: 2px 6px;
-    color: var(--color-white);
-    font-size: 11px;
-    border-radius: var(--border-radius-1);
+/* Evitar que el scroll tape el contenido */
+.scrollable-content {
+    padding-right: 15px;
 }
+
 
 main{
     margin-top: 1.4rem;
@@ -457,7 +499,6 @@ main .recent-orders a{
 
 .right-section {
     margin-top: 1.4rem;
-    overflow-y: auto;
     height: 34.5rem;
 }
 
@@ -510,7 +551,7 @@ main .recent-orders a{
     overflow: hidden;
 }
 
-.right-section .user-profile{
+.right-section .user-profile {
     display: flex;
     justify-content: center;
     text-align: center;
@@ -521,6 +562,7 @@ main .recent-orders a{
     box-shadow: var(--box-shadow);
     cursor: pointer;
     transition: all 0.3s ease;
+    width: 27rem;
 }
 
 
@@ -641,13 +683,85 @@ main .recent-orders a{
     background-color: rgba(0,0,0,0.4);
 }
 
-.modal-content {
+.modal-notas, .modal-promotion{
+    display: none;
+    position: fixed;
+    z-index: 1001;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content{
     background-color: #fefefe;
     margin: 15% auto;
     padding: 20px;
     border: 1px solid #888;
     width: 80%;
 }
+
+.modal-content-notas, .modal-content-promotion {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Ajuste de z-index para asegurar que el modal esté por encima de otros elementos */
+#modal-tarea {
+    display: block !important;  /* Forzamos la visibilidad */
+    z-index: 5000;  /* Aseguramos que esté por encima */
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);  /* Fondo oscuro */
+}
+
+#modal-tarea .modal-content {
+    background-color: #fff;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 600px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+
+#modal-tarea .close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+#modal-tarea .close:hover,
+#modal-tarea .close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
 
 @keyframes animatetop {
     from {
@@ -1191,7 +1305,7 @@ main {
     left: 0; /* Alineado para que no se superponga con el sidebar */
     bottom: 0; /* Alineado con la parte inferior de main */
     overflow: auto; /* Permite desplazamiento si el contenido es muy extenso */
-    z-index: 10; /* Asegura que se muestre por encima de otros elementos */
+   
     background-color: var(--color-white); /* Usar la variable de color definida o un valor fijo */
     box-shadow: var(--box-shadow); /* Sombra para dar sensación de elevación */
     border-radius: var(--card-border-radius); /* Bordes redondeados */
@@ -1205,7 +1319,7 @@ main {
     /* Puedes agregar padding o margin según necesites */
 }
 
-#students-search, #users-search {
+#students-search, #users-search{
     margin-right: 15px; /* Ajusta el margen derecho según necesites */
     /* Otros estilos que desees aplicar al input */
 }
@@ -1213,36 +1327,49 @@ main {
   
   
 
-/* Estilos para la tabla dentro del widget de estudiantes */
-#students-table {
+/* Estilos para ambas tablas: students-table y boletines-table */
+#students-table, #boletines-table {
     width: 100%;
-    min-width: 800px; /* Establece un ancho mínimo para la tabla */
+    min-width: 1000px; /* Puedes ajustar este valor para forzar el scroll horizontal */
     border-collapse: collapse;
-    /* Tus otros estilos para la tabla aquí */
 }
 
-#students-table th, #students-table td {
+#students-table th, #students-table td, 
+#boletines-table th, #boletines-table td {
     text-align: center;
     padding: 8px;
-    /* Tus otros estilos para las celdas de la tabla aquí */
+    white-space: nowrap; /* Esto asegura que las celdas no se ajusten en varias líneas */
 }
 
-#students-table thead th {
+#students-table thead th, 
+#boletines-table thead th {
     position: sticky;
-    top: 0; /* Ajusta si es necesario para coincidir con la altura de otros elementos como un header o nav */
-    background: #FFF; /* O el color de fondo que prefieras */
-    z-index: 10; /* Asegúrate de que el encabezado se muestre por encima del contenido al desplazar */
+    top: 0;
+    background: #FFF;
+    
+}
+
+/* Asegurarse de que el contenedor tenga scroll habilitado */
+#table-container {
+    max-height: 80vh; /* Limita la altura del contenedor */
+    white-space: nowrap; /* Previene que las celdas se ajusten en varias líneas */
+}
+
+.boletines-widget {
+    position: absolute; /* Posición absoluta respecto a su contenedor relativo */
+    top: 3.75rem; /* Alineado con la parte superior de main */
+    right: 0; /* Alineado con el lado derecho */
+    left: 0; /* Alineado para que no se superponga con el sidebar */
+    bottom: 0; /* Alineado con la parte inferior de main */
+    overflow: auto; /* Permite desplazamiento si el contenido es muy extenso */
+    background-color: var(--color-white); /* Usar la variable de color definida o un valor fijo */
+    box-shadow: var(--box-shadow); /* Sombra para dar sensación de elevación */
+    border-radius: var(--card-border-radius); /* Bordes redondeados */
+    padding: 1rem; /* Espaciado interno */
+    height: 88vh;
 }
 
 
-#students-table th {
-    position: sticky;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    top: 0; /* Ajusta esta propiedad según el espacio que quieras dejar desde el inicio del viewport. */
-    background: white; /* o el color de fondo de tu tabla */
-    z-index: 10; 
-}
 
 
 
@@ -1253,7 +1380,6 @@ main {
     left: 0;
     bottom: 0;
     overflow: auto;
-    z-index: 10;
     background-color: var(--color-white);
     box-shadow: var(--box-shadow);
     border-radius: var(--card-border-radius);
@@ -1365,6 +1491,24 @@ main {
 .context-menu ul li:hover {
     background-color: #eee;
   }
+
+
+  .generate-button {
+    padding: 6px 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px; /* Tamaño de la fuente más pequeño */
+}
+
+.generate-button:hover {
+    background-color: #0056b3;
+}
+
+
+
    /*Fin de menú*/
 
 
@@ -1374,11 +1518,16 @@ main {
     color: #007bff;
 }
 
-.review-promotion i {
-    font-size: 18px;
-    color: red;
-    margin-left: 10px; /* Espacio entre el ícono del ojo y la campana */
+.review-promotion {
+    display: inline-block; /* Asegura que el botón se comporte correctamente */
+    padding: 10px; /* Ajustar padding para mejor área de clic */
+    cursor: pointer;
 }
+
+.review-promotion i {
+    pointer-events: none; /* Evita que el ícono interfiera con los eventos de clic */
+}
+
 
 #approvePromotionBtn, #denyPromotionBtn {
     padding: 8px 16px;
@@ -1415,7 +1564,6 @@ main .teacher-widget {
     left: 0;
     bottom: 0;
     overflow: auto;
-    z-index: 10;
     background-color: var(--color-white);
     box-shadow: var(--box-shadow);
     border-radius: var(--card-border-radius);
@@ -1445,3 +1593,23 @@ main .teacher-widget {
 }
 
 
+button.generate-boletin {
+    padding: 6px 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+
+button.assign-grade {
+    padding: 6px 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
