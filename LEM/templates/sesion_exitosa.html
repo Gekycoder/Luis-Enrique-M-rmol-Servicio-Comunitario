@@ -247,7 +247,7 @@
                     </div>
 
                     <!-- Botones de filtro -->
-                    {% if is_admin_or_director or is_secretaria %}
+                    
                     <select id="filter-grade">
                         <option value="" disabled selected>Grado</option>
                         <option value="I">Nivel I</option>
@@ -260,7 +260,7 @@
                         <option value="5°">5° Grado</option>
                         <option value="6°">6° Grado</option>
                     </select>
-                    {% endif %}
+                    
 
 
                     <table id="students-table">
@@ -502,6 +502,60 @@
                         </form>
                     </div>
                 </div>
+
+                <!-- Boletines para Primaria -->
+                <div id="boletinesPrimariaForm" class="modal">
+                    <div class="modal-content">
+                        <span class="close" onclick="closeBoletinesModal()">&times;</span>
+                        <form id="formBoletinesPrimaria" class="form-grid" method="post">
+                            {% csrf_token %}
+
+                            <div class="form-group">
+                                <label for="nombre_proyecto">Nombre del Proyecto:</label>
+                                <input type="text" id="nombre_proyecto" name="nombre_proyecto" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="fechaDesde">Desde:</label>
+                                <input type="text" id="fechaDesde" name="fechaDesde" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="fechaHasta">Hasta:</label>
+                                <input type="text" id="fechaHasta" name="fechaHasta" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="habilidadesConsolidadas">Habilidades Consolidadas:</label>
+                                <textarea type="text" id="habilidadesConsolidadas" name="habilidadesConsolidadas" required></textarea>
+                                <small id="habilidadesConsolidadasCounter" class="char-counter">0/3170 caracteres usados</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="habilidadesporConsolidar">Habilidades por Consolidar:</label>
+                                <textarea type="text" id="habilidadesporConsolidar" name="habilidadesporConsolidar" required></textarea>
+                                <small id="habilidadesporConsolidarCounter" class="char-counter">0/3170 caracteres usados</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="sugerencias">Sugerencias y/o Recomendaciones de la Docente:</label>
+                                <textarea id="sugerencias" name="sugerencias" required></textarea>
+                                <small id="sugerenciasCounter" class="char-counter">0/3170 caracteres usados</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="diasHabiles">Días Hábiles:</label>
+                                <input type="number" id="diasHabiles" name="diasHabiles" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="asistencias">Asistencias:</label>
+                                <input type="number" id="asistencias" name="asistencias" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="inasistencias">Inasistencias:</label>
+                                <input type="number" id="inasistencias" name="inasistencias" required>
+                            </div>
+                            <button type="submit">Aceptar</button>
+                        </form>
+                    </div>
+                </div>
+
                 
                 
                 

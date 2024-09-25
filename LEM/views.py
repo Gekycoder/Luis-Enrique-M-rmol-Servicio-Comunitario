@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 # Asume que esta función está definida en utils.py
 from .constancias import constancia_estudio, constancia_asistencia, constancia_inscripcion, constancia_retiro
 from django.contrib.auth.decorators import login_required
-from .boletines import generar_boletin
+from .boletines import generar_boletin, generar_boletin_primaria_pdf
 from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import render, redirect, get_object_or_404
 from .utils import generate_jwt_token, store_user_token
@@ -18,6 +18,8 @@ from django.core.files.storage import default_storage
 from django.http import JsonResponse, HttpResponseBadRequest
 import logging, json, traceback
 from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 
 
 
@@ -160,6 +162,10 @@ def agregar_usuario(request):
 
         try:
             nuevo_usuario.save()
+
+            # Enviar correo de bienvenida
+            enviar_email_notificacion(nuevo_usuario, 'registro')
+
             return JsonResponse({'success': True})
         except IntegrityError as e:
             logger.error(f"Error al guardar el usuario: {str(e)}")
@@ -177,13 +183,21 @@ def modificar_usuario(request):
             usuario.apellidos = data['apellidos']
             usuario.cedula = data['cedula']
             usuario.usuario = data['usuario']
-            if data['contrasena']:
-                usuario.contrasena = make_password(data['contrasena'])
+            
+            # Verificamos si se proporcionó una nueva contraseña y si es diferente de la actual
+            nueva_contrasena = data['contrasena']
+            if nueva_contrasena and make_password(nueva_contrasena) != usuario.contrasena:
+                usuario.contrasena = make_password(nueva_contrasena)
+                # Enviar correo de cambio de contraseña con la contraseña sin hashear
+                enviar_email_notificacion(usuario, 'cambio_contrasena', contrasena=nueva_contrasena)
+
             usuario.correo = data['correo']
             usuario.telefonos = data['telefonos']
-            usuario.direccion=data['direccion'],
+            usuario.direccion = data['direccion']
             usuario.rol = data['rol']
             usuario.save()
+
+
             return JsonResponse({'success': True})
         except Usuario.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Usuario no encontrado'}, status=404)
@@ -335,6 +349,18 @@ def vista_constancia(request, estudiante_id):
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="Constancia_de_estudio.pdf"'
 
+    # Obtener información del usuario que descarga la constancia desde la sesión
+    user_data = request.session.get('user_data')
+    if user_data:
+        nombre_usuario = user_data.get('usuario')
+        rol_usuario = user_data.get('rol')
+    else:
+        nombre_usuario = "Usuario Anónimo"
+        rol_usuario = "Anónimo"
+
+    # Enviar el correo de notificación
+    enviar_correo_constancia(nombre_usuario, rol_usuario, pdf, "Constancia de Estudio")
+
     return response
 
 def vista_constancia_asistencia(request, estudiante_id):
@@ -343,6 +369,18 @@ def vista_constancia_asistencia(request, estudiante_id):
     # Crear una respuesta HTTP con el PDF como contenido y los headers correctos
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="Constancia_de_asistencia.pdf"'
+
+    # Obtener información del usuario que descarga la constancia desde la sesión
+    user_data = request.session.get('user_data')
+    if user_data:
+        nombre_usuario = user_data.get('usuario')
+        rol_usuario = user_data.get('rol')
+    else:
+        nombre_usuario = "Usuario Anónimo"
+        rol_usuario = "Anónimo"
+
+    # Enviar el correo de notificación
+    enviar_correo_constancia(nombre_usuario, rol_usuario, pdf, "Constancia de Asistencia")
 
     return response
 
@@ -353,6 +391,18 @@ def vista_constancia_inscripcion(request, estudiante_id):
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="Constancia_de_inscripcion.pdf"'
 
+    # Obtener información del usuario que descarga la constancia desde la sesión
+    user_data = request.session.get('user_data')
+    if user_data:
+        nombre_usuario = user_data.get('usuario')
+        rol_usuario = user_data.get('rol')
+    else:
+        nombre_usuario = "Usuario Anónimo"
+        rol_usuario = "Anónimo"
+
+    # Enviar el correo de notificación
+    enviar_correo_constancia(nombre_usuario, rol_usuario, pdf, "Constancia de Inscripción")
+
     return response
 
 def vista_constancia_retiro(request, estudiante_id):
@@ -362,7 +412,20 @@ def vista_constancia_retiro(request, estudiante_id):
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="Constancia_de_retiro.pdf"'
 
+    # Obtener información del usuario que descarga la constancia desde la sesión
+    user_data = request.session.get('user_data')
+    if user_data:
+        nombre_usuario = user_data.get('usuario')
+        rol_usuario = user_data.get('rol')
+    else:
+        nombre_usuario = "Usuario Anónimo"
+        rol_usuario = "Anónimo"
+
+    # Enviar el correo de notificación
+    enviar_correo_constancia(nombre_usuario, rol_usuario, pdf, "Constancia de Retiro")
+
     return response
+
 
 
 logger = logging.getLogger(__name__)
@@ -397,6 +460,39 @@ def generar_boletin_1er_momento_preescolar(request, estudiante_id):
         # Manejar GET request o redirigir a una página adecuada si no es un POST request
         return HttpResponse("Método no permitido", status=405)
     
+
+
+    
+def generar_boletin_primaria(request, estudiante_id):
+    user_data = request.session.get('user_data')
+    
+    if not user_data:
+        return redirect('login')
+
+    try:
+        usuario_actual = Usuario.objects.get(id=user_data['user_id'])
+    except Usuario.DoesNotExist:
+        return redirect('login')
+
+    if request.method == 'POST':
+        datos_boletin = {
+            'habilidadesConsolidadas': request.POST['habilidadesConsolidadas'],
+            'habilidadesporConsolidar': request.POST['habilidadesporConsolidar'],
+            'sugerencias': request.POST['sugerencias'],
+            'diasHabiles': request.POST['diasHabiles'],
+            'asistencias': request.POST['asistencias'],
+            'inasistencias': request.POST['inasistencias'],
+            'nombre_proyecto': request.POST['nombre_proyecto'],
+            'fechaDesde': request.POST['fechaDesde'],
+            'fechaHasta': request.POST['fechaHasta']
+        }
+
+        pdf = generar_boletin_primaria_pdf(estudiante_id, datos_boletin, usuario_actual)
+        response = HttpResponse(pdf, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="boletin_primaria_{estudiante_id}.pdf"'
+        return response
+    else:
+        return HttpResponse("Método no permitido", status=405)
 
 
 @csrf_exempt
@@ -448,6 +544,8 @@ def crear_tarea(request):
             usuario=usuario  # Asocia la tarea al usuario
         )
 
+        enviar_email_notificacion(usuario, 'tarea_creada', tarea) #Envia el correo al crear una tarea
+        
         return JsonResponse({'success': True})
     else:
         return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
@@ -473,6 +571,9 @@ def actualizar_tarea(request):
             tarea.descripcion = descripcion
             tarea.fecha = fecha
             tarea.save()
+
+            enviar_email_notificacion(usuario, 'tarea_actualizada', tarea) #Envia el correo al actualizar una tarea
+
             return JsonResponse({'success': True})
         except Tarea.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Tarea no encontrada'}, status=404)
@@ -868,3 +969,80 @@ def get_estudiante(request, id):
         return JsonResponse({'estudiante': estudiante_data}, status=200)
     except Estudiante.DoesNotExist:
         return JsonResponse({'error': 'Estudiante no encontrado'}, status=404)
+    
+
+
+################################## correos #################################
+
+def enviar_email_notificacion(usuario, accion, tarea=None, contrasena=None):
+    try:
+        logger.info(f"Iniciando envío de correo para acción: {accion}")
+
+
+
+        if accion == 'tarea_creada':
+            asunto = 'Nueva Tarea Creada'
+            mensaje = render_to_string('emails/tarea_creada.html', {'usuario': usuario, 'tarea': tarea})
+        elif accion == 'tarea_actualizada':
+            asunto = 'Tarea Actualizada'
+            mensaje = render_to_string('emails/tarea_actualizada.html', {'usuario': usuario, 'tarea': tarea})
+
+        elif accion == 'registro':
+            asunto = 'Bienvenido al Sistema de Gestión Administrativo de Luis Enrique Mármol'
+            mensaje = render_to_string('emails/bienvenida.html', {'usuario': usuario})
+
+        elif accion == 'cambio_contrasena':
+            asunto = 'Cambio de Contraseña'
+            mensaje = render_to_string('emails/cambio_contrasena.html', {'usuario': usuario, 'contrasena': contrasena})
+
+        else:
+            logger.error(f"Acción desconocida: {accion}")
+            return
+
+        email_desde = settings.DEFAULT_FROM_EMAIL
+        email_para = [usuario.correo]
+
+        logger.info(f"Enviando correo a {email_para} con asunto '{asunto}'")
+
+        email = EmailMultiAlternatives(asunto, mensaje, email_desde, email_para)
+        email.attach_alternative(mensaje, "text/html")
+        email.send()
+        logger.info("Correo enviado exitosamente")
+    except Exception as e:
+        logger.error(f"Error al enviar correo electrónico: {str(e)}")
+        print(f"Error al enviar correo electrónico: {str(e)}")
+
+
+
+def enviar_correo_constancia(nombre_usuario, rol_usuario, pdf, tipo_constancia):
+    try:
+        asunto = f"Notificación de Descarga de {tipo_constancia}"
+        # Renderizar la plantilla HTML
+        mensaje_html = render_to_string('emails/alerta_descarga_constancia.html', {
+            'nombre_usuario': nombre_usuario,
+            'rol_usuario': rol_usuario,
+            'tipo_constancia': tipo_constancia,
+        })
+
+        email_desde = settings.DEFAULT_FROM_EMAIL
+
+        # Obtener los correos electrónicos de usuarios con roles 'Director' y 'Subdirectora'
+        destinatarios = Usuario.objects.filter(rol__in=['Director', 'Subdirectora']).values_list('correo', flat=True)
+
+        if not destinatarios:
+            logger.warning("No se encontraron usuarios con rol de Director o Subdirectora para enviar el correo.")
+            return
+
+        logger.info(f"Enviando correo a: {', '.join(destinatarios)}")
+
+        email = EmailMultiAlternatives(asunto, mensaje_html, email_desde, destinatarios)
+        email.attach_alternative(mensaje_html, "text/html")
+
+        # Adjuntar el archivo PDF descargado
+        email.attach(f"{tipo_constancia}.pdf", pdf, 'application/pdf')
+
+        email.send()
+        logger.info("Correo de notificación de descarga enviado exitosamente")
+    except Exception as e:
+        logger.error(f"Error al enviar el correo de notificación: {str(e)}")
+

@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const boletinesModal = document.getElementById('boletinesForm');  // Referencia al modal
     const closeModalBtn = document.querySelector('.close');  // Botón para cerrar el modal
     const formBoletines = document.getElementById('formBoletines');  // El formulario dentro del modal
+    const boletinesPrimariaModal = document.getElementById('boletinesPrimariaForm');  
+    const formBoletinesPrimaria = document.getElementById('formBoletinesPrimaria');
     let estudiantesData = [];  // Variable global para almacenar los estudiantes
     let selectedGrade = ''; // Inicializamos la variable del grado
 
@@ -248,12 +250,81 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${student.direccion || ''}</td>
                 <td>${student.tlf || ''}</td>
                 <td class="actions-cell">
-                    <button class="generate-boletin" data-momento="1er Momento" data-id="${student.id || ''}">1er Momento</button>
+                    <button class="generate-boletin" data-momento="1er Momento" data-id="${student.id || ''}">Preescolar</button>
+                    <button class="generate-boletin-primaria" data-momento="Primaria" data-id="${student.id || ''}">Primaria</button>
                 </td>
             `;
             tbody.appendChild(tr);
         });
     }
+
+// Referencia al modal de Boletines de Primaria
+
+
+// Mostrar el modal de Boletines de Primaria
+const showBoletinesPrimariaModal = (estudianteId) => {
+    currentEstudianteId = estudianteId;  // Guardar el ID del estudiante
+    hideAllModals();  // Ocultar cualquier otro modal
+    boletinesPrimariaModal.style.display = 'block';  // Mostrar el modal de boletines de primaria
+};
+
+// Cerrar el modal de Boletines de Primaria
+const closeBoletinesPrimariaModal = () => {
+    boletinesPrimariaModal.style.display = 'none';
+};
+
+// Escuchar el evento para el botón "Primaria"
+document.addEventListener('click', function(event) {
+    if (event.target.classList.contains('generate-boletin-primaria')) {
+        event.preventDefault();
+        const estudianteId = event.target.getAttribute('data-id');  // Obtener el ID del estudiante
+        showBoletinesPrimariaModal(estudianteId);  // Mostrar el modal de boletines de primaria
+    }
+});
+
+// Capturar el evento submit del formulario de boletines de primaria
+formBoletinesPrimaria.addEventListener('submit', function(event) {
+    event.preventDefault();  // Evitar el envío tradicional del formulario
+
+    if (currentEstudianteId) {
+        const formData = new FormData(formBoletinesPrimaria);  // Recoger los datos del formulario
+
+        // Enviar la solicitud POST para generar el boletín de primaria
+        fetch(`/generar-boletin-primaria/${currentEstudianteId}/`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error al generar el boletín de primaria.');
+            }
+            return response.blob();  // Obtener el archivo PDF como blob
+        })
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `boletin_primaria_${currentEstudianteId}.pdf`;  // Nombre del archivo PDF
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al generar el boletín de primaria.');
+        });
+    } else {
+        alert('Error: No se pudo obtener el ID del estudiante.');
+    }
+});
+
+// Cerrar el modal de Boletines de Primaria si se hace clic fuera de él
+window.addEventListener('click', function(event) {
+    if (event.target === boletinesPrimariaModal) {
+        closeBoletinesPrimariaModal();
+    }
+});
+
 
     // Llamamos a la función para configurar búsqueda y filtros
     setupSearchAndFilters();

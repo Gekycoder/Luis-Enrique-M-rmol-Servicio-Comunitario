@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 10px;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 100%;
+            padding: 15px;
+            box-sizing: border-box;
+            flex-grow: 1; /* Permite que el contenido crezca y llene el espacio disponible */
+        }
+        .header {
+            text-align: center;
+            font-size: 8px;
+            margin: 0;
+            padding: 0;
+        }
+        .header h1 {
+            font-size: 12px;
+            margin: 0;
+        }
+        .header h2 {
+            font-size: 10px;
+            margin: 0;
+        }
+        .header {
+            text-align: center;
+            font-size: 6.5px;
+            margin: 0; /* Elimina cualquier margen */
+            padding: 0; /* Elimina cualquier padding */
+        }
+        .title {
+            text-align: center;
+            border: 1px solid black;
+            padding: 5px;
+            font-size: 10px;
+            background-color: #f0f0f0;
+        }
+        .content {
+            margin-top: 2rem;
+        }
+        .content table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .content th, .content td {
+            border: 1px solid black;
+            padding: 5px;
+            text-align: center; /* Mantiene el texto centrado */
+            vertical-align: middle;
+            white-space: nowrap; /* Asegura que el texto no se envuelva */
+        }
+        
+
+        .content th {
+            background-color: #f0f0f0;
+            text-align: center;
+        }
+        .content th.align-left {
+            text-align: left;
+            white-space: normal; /* Permitir el ajuste del texto */
+            word-break: break-word; /* Romper las palabras largas */
+        }
+        .footer {
+            text-align: center;
+            font-size: 8px;
+            padding: 0px;
+            width: 95%;
+            position: fixed;
+            bottom: 0px;
+        }
+        .small-text {
+            font-size: 9.5px;
+        }
+        .vertical-text {
+            white-space: normal;
+            text-align: center; /* Alineado centrado */
+            height: 110px; /* Ajusta esta altura según sea necesario */
+        }
+        .left-justify ul {
+            text-align: left; /* Alineación horizontal a la izquierda */
+            white-space: normal; /* Permitir el ajuste del texto */
+            padding-left: 20px; /* Ajusta el valor para cambiar la indentación de las viñetas */
+            white-space: normal; /* Permitir el ajuste del texto */
+            word-break: break-word; /* Romper las palabras largas */
+        }
+        .left-justify li {
+            margin-bottom: 2px; /* Espacio entre las viñetas */
+        }
+        .same-height {
+            height: 110px; /* Ajusta esta altura según sea necesario */
+        }
+        .suggestions-padding {
+            padding: 20px; /* Ajusta el padding según sea necesario */
+        }
+        .full-width-space {
+            height: 50px; /* Ajusta esta altura según sea necesario */
+        }
+        .equal-width {
+            width: 16.66%;
+        }
+        .nested-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: none;
+        }
+        .nested-table th, .nested-table td {
+            border: none;
+            padding: 5px;
+            text-align: center;
+        }
+        .custom-cell {
+            width: calc(100% / 6);
+        }
+        .no-border {
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <!-- Contenido del encabezado -->
+            <h1>REPÚBLICA BOLIVARIANA DE VENEZUELA</h1>
+            <h1>MINISTERIO DEL PODER POPULAR PARA LA EDUCACIÓN</h1>
+            <h1>ESCUELA BÁSICA "LUIS ENRIQUE MÁRMOL"</h1>
+            <h1>MINISTERIO DEL PODER POPULAR PARA LA EDUCACIÓN</h1>
+            <h1>CODIGO DEA: ODO2390105</h1>
+            <h1>23 DE ENERO - CARACAS</h1>
+            <!-- Más elementos del encabezado -->
+        </div>
+        <div class="content">
+            <table>
+                <tr>
+                    <th colspan="6" class="title">Informe Descriptivo del I Momento</th>
+                </tr>
+                <tr>
+                    <td class="align-left">Nombre y Apellido del (la) Estudiante:</td>
+                    <td colspan="5">{{ nombre_estudiante }}</td>
+                </tr>
+                <tr>
+                    <td class="align-center">C.E.:</td>
+                    <td colspan="3">{{ ce }}</td>
+                    <td class="align-left">Nivel y Sección:</td>
+                    <td colspan="1">{{ nivel_seccion }}</td>
+                </tr>
+
+                <tr>
+                    <td class="align-left">Nombre del proyecto:</td>
+                    <td colspan="5">{{ nombre_proyecto }}</td>
+                </tr>
+
+                <tr>
+                    <td class="align-center">Desde:</td>
+                    <td colspan="3">{{ fechaDesde }}</td>
+                    <td class="align-left">Hasta:</td>
+                    <td colspan="1">{{ fechaHasta }}</td>
+                </tr>
+
+                <tr>
+                    <th colspan="6">Descripción de la Actuación del (la) Estudiante</th>
+                </tr>
+                <tr>
+                    <td class="vertical-text same-height no-border">Habilidades Consolidadas</td>
+                    <td class="same-height left-justify" colspan="5">
+                        <ul>
+                        {% for item in habilidadesConsolidadas %}
+                            <li>{{ item }}</li>
+                        {% endfor %}
+                        </ul>
+                    </td>
+                </tr>
+                
+                <tr>
+                    <td class="vertical-text same-height no-border">Habilidades por Consolidar</td>
+                    <td class="same-height left-justify" colspan="5">
+                        <ul>
+                        {% for item in habilidadesporConsolidar %}
+                            <li>{{ item }}</li>
+                        {% endfor %}
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <th colspan="6" class="full-width suggestions-padding">Sugerencias y/o Recomendaciones de la Docente</th>
+                </tr>
+                <tr>
+                    <td colspan="6" class="full-width-space left-justify">
+                        <ul>
+                        {% for item in sugerencias %}
+                            <li>{{ item }}</li>
+                        {% endfor %}
+                        </ul>
+                    </td>
+                </tr>                               
+                <tr>
+                    <td class="custom-cell">Días Hábiles</td>
+                    <td class="custom-cell">{{ diasHabiles }}</td>
+                    <td class="custom-cell">Asistencias</td>
+                    <td class="custom-cell">{{ asistencias }}</td>
+                    <td class="custom-cell">Inasistencias</td>
+                    <td class="custom-cell">{{ inasistencias }}</td>
+                </tr>
+                <tr>
+                    <td colspan="6" class="full-width-space"></td>
+                </tr>
+                <tr>
+                   
+                    <td class="align-center" colspan="3">{{ docente }}<br>Docente</td>
+                    <td class="align-center" colspan="3">{{ director }}<br>Director</td>
+                </tr>
+            </table>
+        </div>
+        <div class="footer">
+            <p class="small-text">Parroquia 23 de Enero, Calle Real de La Cañada, entre los bloques 19, 20 y 21. A 50 mts. Del SAIME y la Coordinadora Simón Bolívar. Teléfono: (0424) 195 73 64 Correo electrónico: e.b.n.luis.enrique.marmol@gmail.com</p>
+        </div>
+    </div>
+</body>
+</html>

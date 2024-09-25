@@ -1593,7 +1593,7 @@ main .teacher-widget {
 }
 
 
-button.generate-boletin {
+button.generate-boletin, button.generate-boletin-primaria{
     padding: 6px 12px;
     background-color: #007bff;
     color: white;

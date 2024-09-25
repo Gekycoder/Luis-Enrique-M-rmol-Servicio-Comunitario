@@ -26,6 +26,7 @@ urlpatterns = [
     path('generar-constancia-inscripcion/<int:estudiante_id>/', views.vista_constancia_inscripcion, name='generar-constancia-inscripcion'),
     path('generar-constancia-retiro/<int:estudiante_id>/', views.vista_constancia_retiro, name='generar-constancia-retiro'),
     path('generar-boletin-1er-momento-preescolar/<int:estudiante_id>/', views.generar_boletin_1er_momento_preescolar, name='generar_boletin_1er_momento_preescolar'),
+    path('generar-boletin-primaria/<int:estudiante_id>/', views.generar_boletin_primaria, name='generar_boletin_primaria'),
     path('obtener-notas/<int:estudiante_id>/', views.obtener_notas, name='obtener_notas'),
     path('registrar-notas/<int:estudiante_id>/', views.registrar_notas, name='registrar_notas'),
     path('denegar-promocion/<int:estudiante_id>/', views.denegar_promocion, name='denegar_promocion'),
