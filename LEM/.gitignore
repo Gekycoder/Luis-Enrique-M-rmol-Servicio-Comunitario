@@ -1,0 +1,43 @@
+# Entornos virtuales
+venv_lem/
+*.pyc
+__pycache__/
+
+# Archivos de base de datos locales
+db.sqlite3
+
+# Archivos de configuración sensibles
+*.env
+
+# Archivos y carpetas de caché
+.DS_Store
+*.log
+*.pot
+
+# Archivos de compilación
+*.mo
+
+# Archivos del sistema operativo
+Thumbs.db
+.DS_Store
+
+# Archivos de VSCode
+.vscode/
+
+# Archivos estáticos generados por collectstatic
+/staticfiles/
+/staticfiles/*
+
+# Subidas de media y migraciones
+/media/
+/media/*
+
+# Archivos de migraciones generados
+LEM/migrations/__pycache__/
+LEM/migrations/*.pyc
+LEM/migrations/*.log
+
+# Otros archivos innecesarios
+*.swp
+*.swo
+.idea/
