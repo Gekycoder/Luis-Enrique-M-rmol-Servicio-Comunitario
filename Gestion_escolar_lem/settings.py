@@ -112,7 +112,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'gestion_lem',
         'USER': 'AdministradorLEM',
-        'PASSWORD': 'LEM23e',
+        'PASSWORD': 'Lem23$trong!',
         'HOST': 'localhost',  # O la IP del servidor MySQL si es remoto
         'PORT': '3306',  # El puerto por defecto de MySQL
     }
