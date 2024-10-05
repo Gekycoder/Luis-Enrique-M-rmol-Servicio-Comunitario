@@ -93,10 +93,10 @@ TEMPLATES = [
         },
     },
 ]
-
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'LEM', 'static'),
-]
+# Descomentar solo si es local y comentar si es en produccion
+#STATICFILES_DIRS = [
+#    os.path.join(BASE_DIR, 'LEM', 'static'),
+#]
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Para producción
 
