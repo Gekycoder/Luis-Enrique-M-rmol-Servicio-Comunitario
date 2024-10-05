@@ -31,7 +31,11 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+
+ALLOWED_HOSTS = ['luisenriquemarmol.com', 'www.luisenriquemarmol.com', '51.81.26.29']
+
+
+
 
 
 # Application definition
@@ -94,6 +98,7 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'LEM', 'static'),
 ]
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Para producción
 
 WSGI_APPLICATION = 'Gestion_escolar_lem.wsgi.application'
 
@@ -101,14 +106,15 @@ WSGI_APPLICATION = 'Gestion_escolar_lem.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv('MYSQL_DATABASE'),
-        'USER': os.getenv('MYSQL_USER'),
-        'PASSWORD': os.getenv('MYSQL_PASSWORD'),
-        'HOST': 'db',  # 'db' es el nombre del servicio en docker-compose.yml
-        'PORT': '3306',
+        'NAME': 'gestion_lem',
+        'USER': 'AdministradorLEM',
+        'PASSWORD': 'LEM23e',
+        'HOST': 'localhost',  # O la IP del servidor MySQL si es remoto
+        'PORT': '3306',  # El puerto por defecto de MySQL
     }
 }
 
@@ -122,13 +128,13 @@ EMAIL_HOST_PASSWORD = 'pjbromzdwsdzcton'  # Contraseña de la aplicación sin es
 DEFAULT_FROM_EMAIL = 'ebluisemarmol@gmail.com'
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER')
+#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+#EMAIL_HOST = 'smtp.gmail.com'
+#EMAIL_PORT = 587
+#EMAIL_USE_TLS = True
+#EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+#EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+#DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER')
 
 #AUTH_USER_MODEL = 'LEM.Usuario'
 
