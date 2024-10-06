@@ -9,6 +9,7 @@ class Usuario(models.Model):
     cedula = models.CharField(max_length=45, unique=True)
     usuario = models.CharField(max_length=150, unique=True)
     contrasena = models.CharField(max_length=128)
+    fecha_nac = models.DateField()
     correo = models.EmailField(unique=True)
     telefonos = models.CharField(max_length=255)
     direccion = models.TextField()
@@ -27,11 +28,20 @@ class Estudiante(models.Model):
     sexo = models.CharField(max_length=1, choices=[('M', 'Masculino'), ('F', 'Femenino')])
     edad = models.IntegerField()
     lugar_nac = models.CharField(max_length=100)
-    fecha_nac = models.DateField()
+    fecha_nac = models.DateField(null=True, blank=True)
+    talla = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)  # Max 999.99
+    peso = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)   # Max 999.99
+    talla_camisa = models.CharField(max_length=10, null=True, blank=True)  # Puede aceptar números y texto
+    talla_pantalon = models.CharField(max_length=10, null=True, blank=True)  # Puede aceptar números y texto
+    talla_zapatos = models.CharField(max_length=10, null=True, blank=True)
     representante = models.CharField(max_length=255)
     ci_representante = models.CharField(max_length=20)
-    direccion = models.TextField()
-    tlf = models.CharField(max_length=20)
+    direccion = models.TextField(null=True, blank=True)
+    tlf = models.CharField(max_length=50, null=True, blank=True)
+    nombre_apellido_persona_autorizada_para_retirar_estudiante = models.CharField(max_length=255, null=True, blank=True)
+    ci_persona_autorizada = models.CharField(max_length=50, null=True, blank=True)
+    tlf_persona_autorizada = models.CharField(max_length=50, null=True, blank=True)
+    parentezco_persona_autorizada = models.CharField(max_length=50, null=True, blank=True)
     notas = models.JSONField(default=dict)  # Para almacenar las notas como un diccionario
     promocion_solicitada = models.BooleanField(default=False)
     promocion_aprobada = models.BooleanField(default=False)
