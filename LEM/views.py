@@ -138,6 +138,7 @@ def agregar_usuario(request):
         contrasena = request.POST.get('contrasena')
         correo = request.POST.get('correo')
         telefonos = request.POST.get('telefonos')
+        fecha_nac = request.POST.get('fecha_nac')  # Agregar la fecha de nacimiento
         direccion = request.POST.get('direccion')
         rol = request.POST.get('rol')
         
@@ -193,6 +194,7 @@ def modificar_usuario(request):
 
             usuario.correo = data['correo']
             usuario.telefonos = data['telefonos']
+            usuario.fecha_nac = data['fecha_nac']
             usuario.direccion = data['direccion']
             usuario.rol = data['rol']
             usuario.save()
@@ -277,7 +279,7 @@ def sesion_exitosa(request):
 # Para obtener la lista de usuarios dentro de la base de datos
 def get_usuarios(request):
     usuarios = list(Usuario.objects.all().values(
-        'id', 'nombres', 'apellidos', 'cedula', 'usuario', 'contrasena', 'correo', 'telefonos', 'direccion', 'rol' 
+        'id', 'nombres', 'apellidos', 'cedula', 'usuario', 'contrasena', 'correo', 'telefonos', 'fecha_nac', 'direccion', 'rol' 
     ))
     return JsonResponse({'usuarios': usuarios})
 # Fin de obtencion la lista de usuarios dentro de la base de datos
@@ -298,6 +300,7 @@ def get_usuario(request, user_id):
                 'contrasena': usuario.contrasena,
                 'correo': usuario.correo,
                 'telefonos': usuario.telefonos,
+                'fecha_nac': usuario.fecha_nac,
                 'direccion': usuario.direccion,
                 'rol': usuario.rol
             }
@@ -323,8 +326,12 @@ def get_estudiantes(request):
         # Estos roles ven a todos los estudiantes
         estudiantes = Estudiante.objects.all().select_related('docente').values(
             'id', 'ci', 'apellidos_nombres', 'grado', 'seccion', 'sexo', 'edad',
-            'lugar_nac', 'fecha_nac', 'representante', 'ci_representante',
-            'direccion', 'tlf', 'notas', 'docente_id', 'docente2_id', 'docente3_id'
+            'lugar_nac', 'fecha_nac', 'talla', 'peso', 'talla_camisa', 'talla_pantalon', 'talla_zapatos',
+            'representante', 'ci_representante', 'direccion', 'tlf',
+            'nombre_apellido_persona_autorizada_para_retirar_estudiante', 
+            'ci_persona_autorizada', 'tlf_persona_autorizada', 'parentezco_persona_autorizada',
+            'notas', 'promocion_solicitada', 'promocion_aprobada',
+            'docente_id', 'docente2_id', 'docente3_id'
         )
     elif user.rol == 'Docente':
         # Los docentes solo ven los estudiantes asignados a ellos
@@ -332,8 +339,12 @@ def get_estudiantes(request):
             Q(docente_id=user.id) | Q(docente2_id=user.id) | Q(docente3_id=user.id)
         ).select_related('docente').values(
             'id', 'ci', 'apellidos_nombres', 'grado', 'seccion', 'sexo', 'edad',
-            'lugar_nac', 'fecha_nac', 'representante', 'ci_representante',
-            'direccion', 'tlf', 'notas', 'docente_id', 'docente2_id', 'docente3_id'
+            'lugar_nac', 'fecha_nac', 'talla', 'peso', 'talla_camisa', 'talla_pantalon', 'talla_zapatos',
+            'representante', 'ci_representante', 'direccion', 'tlf',
+            'nombre_apellido_persona_autorizada_para_retirar_estudiante', 
+            'ci_persona_autorizada', 'tlf_persona_autorizada', 'parentezco_persona_autorizada',
+            'notas', 'promocion_solicitada', 'promocion_aprobada',
+            'docente_id', 'docente2_id', 'docente3_id'
         )
 
     return JsonResponse({'estudiantes': list(estudiantes)})
@@ -852,10 +863,19 @@ def agregar_estudiante(request):
         edad = request.POST.get('edad')
         lugar_nac = request.POST.get('lugar_nac')
         fecha_nac = request.POST.get('fecha_nac')
+        talla = request.POST.get('talla')
+        peso = request.POST.get('peso')
+        talla_camisa = request.POST.get('talla_camisa')
+        talla_pantalon = request.POST.get('talla_pantalon')
+        talla_zapatos = request.POST.get('talla_zapatos')
         representante = request.POST.get('representante')
         ci_representante = request.POST.get('ci_representante')
         direccion = request.POST.get('direccion')
         tlf = request.POST.get('tlf')
+        nombre_apellido_persona_autorizada_para_retirar_estudiante = request.POST.get('nombre_apellido_persona_autorizada_para_retirar_estudiante')
+        ci_persona_autorizada = request.POST.get('ci_persona_autorizada')
+        tlf_persona_autorizada = request.POST.get('tlf_persona_autorizada')
+        parentezco_persona_autorizada = request.POST.get('parentezco_persona_autorizada')
         
         try:
             # Crear el nuevo estudiante
@@ -868,10 +888,19 @@ def agregar_estudiante(request):
                 edad=edad,
                 lugar_nac=lugar_nac,
                 fecha_nac=fecha_nac,  # Asegúrate de que el formato de la fecha sea correcto (YYYY-MM-DD)
+                talla=talla,
+                peso=peso,
+                talla_camisa=talla_camisa,
+                talla_pantalon=talla_pantalon,
+                talla_zapatos=talla_zapatos,
                 representante=representante,
                 ci_representante=ci_representante,
                 direccion=direccion,
-                tlf=tlf
+                tlf=tlf,
+                nombre_apellido_persona_autorizada_para_retirar_estudiante=nombre_apellido_persona_autorizada_para_retirar_estudiante,
+                ci_persona_autorizada=ci_persona_autorizada,
+                tlf_persona_autorizada=tlf_persona_autorizada,
+                parentezco_persona_autorizada=parentezco_persona_autorizada
             )
             nuevo_estudiante.save()
 
@@ -895,10 +924,19 @@ def modificar_estudiante(request):
         edad = request.POST.get('edad')
         lugar_nac = request.POST.get('lugar_nac')
         fecha_nac = request.POST.get('fecha_nac')
+        talla = request.POST.get('talla')
+        peso = request.POST.get('peso')
+        talla_camisa = request.POST.get('talla_camisa')
+        talla_pantalon = request.POST.get('talla_pantalon')
+        talla_zapatos = request.POST.get('talla_zapatos')
         representante = request.POST.get('representante')
         ci_representante = request.POST.get('ci_representante')
         direccion = request.POST.get('direccion')
         tlf = request.POST.get('tlf')
+        nombre_apellido_persona_autorizada_para_retirar_estudiante = request.POST.get('nombre_apellido_persona_autorizada_para_retirar_estudiante')
+        ci_persona_autorizada = request.POST.get('ci_persona_autorizada')
+        tlf_persona_autorizada = request.POST.get('tlf_persona_autorizada')
+        parentezco_persona_autorizada = request.POST.get('parentezco_persona_autorizada')
         
         try:
             # Busca al estudiante por su ID o CI (dependiendo de cómo quieras buscarlo)
@@ -910,10 +948,19 @@ def modificar_estudiante(request):
             estudiante.edad = edad
             estudiante.lugar_nac = lugar_nac
             estudiante.fecha_nac = fecha_nac  # Asegúrate de que el formato sea correcto
+            estudiante.talla = talla
+            estudiante.peso = peso
+            estudiante.talla_camisa = talla_camisa
+            estudiante.talla_pantalon = talla_pantalon
+            estudiante.talla_zapatos = talla_zapatos
             estudiante.representante = representante
             estudiante.ci_representante = ci_representante
             estudiante.direccion = direccion
             estudiante.tlf = tlf
+            estudiante.nombre_apellido_persona_autorizada_para_retirar_estudiante = nombre_apellido_persona_autorizada_para_retirar_estudiante
+            estudiante.ci_persona_autorizada = ci_persona_autorizada
+            estudiante.tlf_persona_autorizada = tlf_persona_autorizada
+            estudiante.parentezco_persona_autorizada = parentezco_persona_autorizada
             estudiante.save()
 
             return JsonResponse({'success': True})
@@ -961,10 +1008,19 @@ def get_estudiante(request, id):
             'edad': estudiante.edad,
             'lugar_nac': estudiante.lugar_nac,
             'fecha_nac': fecha_nac_str,  # Usar el valor formateado
+            'talla': estudiante.talla,  # Agregando la talla
+            'peso': estudiante.peso,  # Agregando el peso
+            'talla_camisa': estudiante.talla_camisa,  # Agregando la talla de camisa
+            'talla_pantalon': estudiante.talla_pantalon,  # Agregando la talla de pantalón
+            'talla_zapatos': estudiante.talla_zapatos,  # Agregando la talla de zapatos
             'representante': estudiante.representante,
             'ci_representante': estudiante.ci_representante,
             'direccion': estudiante.direccion,
             'tlf': estudiante.tlf,
+            'nombre_apellido_persona_autorizada_para_retirar_estudiante': estudiante.nombre_apellido_persona_autorizada_para_retirar_estudiante,  # Agregando el nombre completo de la persona autorizada
+            'ci_persona_autorizada': estudiante.ci_persona_autorizada,  # Agregando la cédula de la persona autorizada
+            'tlf_persona_autorizada': estudiante.tlf_persona_autorizada,  # Agregando el teléfono de la persona autorizada
+            'parentezco_persona_autorizada': estudiante.parentezco_persona_autorizada  # Agregando el parentesco de la persona autorizada
         }
         return JsonResponse({'estudiante': estudiante_data}, status=200)
     except Estudiante.DoesNotExist:

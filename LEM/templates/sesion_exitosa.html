@@ -225,9 +225,9 @@
                                 <th>Apellidos</th>
                                 <th>Cédula</th>
                                 <th>Usuario</th>
-                                <th>Contraseña</th>
                                 <th>Correo</th>
                                 <th>Teléfonos</th>
+                                <th>Fecha de Nacimiento</th>
                                 <th>Dirección</th>
                                 <th>Rol</th>
                             </tr>
@@ -275,10 +275,19 @@
                                 <th>Edad</th>
                                 <th>Lugar de Nacimiento</th>
                                 <th>Fecha de Nacimiento</th>
+                                <th>Talla</th>
+                                <th>Peso</th>
+                                <th>Talla de Camisa</th>
+                                <th>Talla de Pantalón</th>
+                                <th>Talla de Zapatos</th>
                                 <th>Representante</th>
                                 <th>CI Representante</th>
                                 <th>Dirección</th>
                                 <th>Teléfono</th>
+                                <th>Nombre Persona Autorizada</th>
+                                <th>CI Persona Autorizada</th>
+                                <th>Teléfono Persona Autorizada</th>
+                                <th>Parentesco Persona Autorizada</th>
                                 <th>Notas</th>
                                 {% if is_admin_or_director%}
                                 <th>Promoción</th>
@@ -575,6 +584,7 @@
                             <input type="password" name="contrasena" placeholder="Contraseña" required>
                             <input type="email" name="correo" placeholder="Correo" required>
                             <input type="text" name="telefonos" placeholder="Teléfonos" required>
+                            <input type="date" name="fecha_nac" placeholder="Fecha de Nacimiento (YYYY-MM-DD)" required>
                             <input type="text" name="direccion" placeholder="Dirección" required>
                             <select name="rol" required>
                                 <option value="" disabled selected>Seleccionar Cargo</option>
@@ -602,6 +612,7 @@
                             <input type="password" id="userContrasena" name="contrasena" placeholder="Contraseña" required>
                             <input type="email" id="userCorreo" name="correo" placeholder="Correo" required>
                             <input type="text" id="userTelefonos" name="telefonos" placeholder="Teléfonos" required> <!-- Corregido -->
+                            <input type="date" id="userFechaNac" name="fecha_nac" placeholder="Fecha de Nacimiento (YYYY-MM-DD)" required>
                             <input type="text" id="userDireccion" name="direccion" placeholder="Dirección" required>
                             <input type="text" id="userRol" name="rol" placeholder="Rol" required>
                             <button type="submit">Modificar</button>
@@ -628,7 +639,7 @@
                         <span class="close">&times;</span>
                         <form id="addStudentForm" class="form-grid">
                             <h2>Agregar Estudiante</h2>
-                            <input type="text" name="ci" placeholder="Cédula del Estudiante" required>
+                            <input type="text" name="ci" placeholder="Cédula escolar o CI de Estudiante" required>
                             <input type="text" name="apellidos_nombres" placeholder="Apellidos y Nombres" required>
                             <select id="gradoSelect" name="grado" required>
                                 <option value="" disabled selected>Grado</option>
@@ -656,10 +667,19 @@
                             <input type="number" name="edad" placeholder="Edad" required>
                             <input type="text" name="lugar_nac" placeholder="Lugar de Nacimiento" required>
                             <input type="date" name="fecha_nac" placeholder="Fecha de Nacimiento (YYYY-MM-DD)" required>
+                            <input type="number" name="talla" placeholder="Talla (cm)" min="1" step="0.01" required>
+                            <input type="number" name="peso" placeholder="Peso (kg)" min="1" step="0.01" required>
+                            <input type="number" name="talla_camisa" placeholder="Talla de Camisa" min="1" step="1" required>
+                            <input type="number" name="talla_pantalon" placeholder="Talla de Pantalón" min="1" step="1" required>
+                            <input type="number" name="talla_zapatos" placeholder="Talla de Zapatos" min="1" step="1" required>
                             <input type="text" name="representante" placeholder="Representante" required>
                             <input type="text" name="ci_representante" placeholder="Cédula del Representante" required>
                             <input type="text" name="direccion" placeholder="Dirección" required>
                             <input type="text" name="tlf" placeholder="Teléfono" required>
+                            <input type="text" name="nombre_apellido_persona_autorizada_para_retirar_estudiante" placeholder="Nombre de Persona Autorizada" required>
+                            <input type="text" name="ci_persona_autorizada" placeholder="Cédula de Persona Autorizada" required>
+                            <input type="text" name="tlf_persona_autorizada" placeholder="Teléfono de Persona Autorizada" required>
+                            <input type="text" name="parentezco_persona_autorizada" placeholder="Parentesco de Persona Autorizada" required>
                             <button type="submit">Agregar</button>
                         </form>
                     </div>
@@ -683,10 +703,19 @@
                             <input type="number" id="studentEdad" name="edad" placeholder="Edad" required>
                             <input type="text" id="studentLugarNac" name="lugar_nac" placeholder="Lugar de Nacimiento" required>
                             <input type="date" id="studentFechaNac" name="fecha_nac" placeholder="Fecha de Nacimiento (YYYY-MM-DD)" required>
+                            <input type="number" id="studentTalla" name="talla" placeholder="Talla (cm)" min="1" step="0.01" required>
+                            <input type="number" id="studentPeso" name="peso" placeholder="Peso (kg)" min="1" step="0.01" required>
+                            <input type="number" id="studentTallaCamisa" name="talla_camisa" placeholder="Talla de Camisa" required>
+                            <input type="number" id="studentTallaPantalon" name="talla_pantalon" placeholder="Talla de Pantalón" required>
+                            <input type="number" id="studentTallaZapatos" name="talla_zapatos" placeholder="Talla de Zapatos" required>
                             <input type="text" id="studentRepresentante" name="representante" placeholder="Representante" required>
                             <input type="text" id="studentCIRepresentante" name="ci_representante" placeholder="Cédula del Representante" required>
                             <input type="text" id="studentDireccion" name="direccion" placeholder="Dirección" required>
                             <input type="text" id="studentTlf" name="tlf" placeholder="Teléfono" required>
+                            <input type="text" id="studentNombrePersonaAutorizada" name="nombre_apellido_persona_autorizada_para_retirar_estudiante" placeholder="Nombre Persona Autorizada" required>
+                            <input type="text" id="studentCIPersonaAutorizada" name="ci_persona_autorizada" placeholder="Cédula Persona Autorizada" required>
+                            <input type="text" id="studentTlfPersonaAutorizada" name="tlf_persona_autorizada" placeholder="Teléfono Persona Autorizada" required>
+                            <input type="text" id="studentParentezcoPersonaAutorizada" name="parentezco_persona_autorizada" placeholder="Parentesco Persona Autorizada" required>
                             <button type="submit">Modificar</button>
                         </form>
                     </div>

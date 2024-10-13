@@ -30,9 +30,10 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
+#DEBUG = True # PARA PRUEBAS LOCALES ACTIVAR
 
 
-ALLOWED_HOSTS = ['luisenriquemarmol.com', 'www.luisenriquemarmol.com', '51.81.26.29']
+ALLOWED_HOSTS = ['luisenriquemarmol.com', 'www.luisenriquemarmol.com', '51.81.26.29']#, 'localhost', '127.0.0.1']
 
 
 
@@ -114,6 +115,7 @@ DATABASES = {
         'USER': 'AdministradorLEM',
         'PASSWORD': 'Lem23$trong!',
         'HOST': 'localhost',  # O la IP del servidor MySQL si es remoto
+    #   'HOST': '51.81.26.29',  # O la IP del servidor MySQL si es remoto
         'PORT': '3306',  # El puerto por defecto de MySQL
     }
 }
@@ -188,7 +190,7 @@ LOGIN_URL = 'login'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-
+### PA PRODUCCION DESCOMENTAR SOLO ESTO
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -207,3 +209,24 @@ LOGGING = {
         },
     },
 }
+
+### PA PRUEBAS LOCALES DESCOMENTAR SOLO ESTO
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'file': {
+#             'level': 'DEBUG',
+#             'class': 'logging.FileHandler',
+#             # Usa una ruta diferente si estás en un entorno local
+#             'filename': os.path.join(BASE_DIR, 'django_local.log') if DEBUG else '/home/nathan/Luis-Enrique-M-rmol-Servicio-Comunitario/django.log',
+#         },
+#     },
+#     'loggers': {
+#         'django': {
+#             'handlers': ['file'],
+#             'level': 'DEBUG',
+#             'propagate': True,
+#         },
+#     },
+# }

@@ -199,6 +199,25 @@
             const studentsTableBody = document.querySelector('#students-table tbody');
             studentsTableBody.innerHTML = '';
 
+            // Ajustar el orden de los grados, colocando primero III, II, I, luego los grados del 1° al 6°
+            const gradeOrder = ['III', 'II', 'I', '1°', '2°', '3°', '4°', '5°', '6°'];
+
+            // Función para ordenar grados y secciones
+            estudiantes.sort((a, b) => {
+                // Ordenar por grado según el índice en el array 'gradeOrder'
+                const gradeComparison = gradeOrder.indexOf(b.grado) - gradeOrder.indexOf(a.grado);
+
+                // Si los grados son iguales
+                if (gradeComparison === 0) {
+                    // Comparar las secciones dentro del mismo grado (A antes que B)
+                    const sectionOrder = ['A', 'B', 'U'];
+                    return sectionOrder.indexOf(a.seccion) - sectionOrder.indexOf(b.seccion);
+                }
+
+                return gradeComparison;
+            });
+
+
             estudiantes.forEach(estudiante => {
                 const row = document.createElement('tr');
                 row.setAttribute('data-student-id', estudiante.id);
@@ -221,17 +240,26 @@
                 let rowContent = `
                 <td>${estudiante.id}</td>
                 <td>${estudiante.ci}</td>
-                <td>${escapedName}</td>
+                <td>${estudiante.apellidos_nombres}</td>
                 <td>${estudiante.grado}</td>
                 <td>${estudiante.seccion}</td>
                 <td>${estudiante.sexo}</td>
                 <td>${estudiante.edad}</td>
                 <td>${estudiante.lugar_nac}</td>
-                <td>${estudiante.fecha_nac}</td>
+                <td>${estudiante.fecha_nac || ''}</td>
+                <td>${estudiante.talla || ''}</td>
+                <td>${estudiante.peso || ''}</td>
+                <td>${estudiante.talla_camisa || ''}</td>
+                <td>${estudiante.talla_pantalon || ''}</td>
+                <td>${estudiante.talla_zapatos || ''}</td>
                 <td>${estudiante.representante}</td>
                 <td>${estudiante.ci_representante}</td>
-                <td>${estudiante.direccion}</td>
-                <td>${estudiante.tlf}</td>
+                <td>${estudiante.direccion || ''}</td>
+                <td>${estudiante.tlf || ''}</td>
+                <td>${estudiante.nombre_apellido_persona_autorizada_para_retirar_estudiante || ''}</td>
+                <td>${estudiante.ci_persona_autorizada || ''}</td>
+                <td>${estudiante.tlf_persona_autorizada || ''}</td>
+                <td>${estudiante.parentezco_persona_autorizada || ''}</td>
                 <td>
                     <button class="ver-notas" data-id="${estudiante.id}" data-name="${escapedName}">
                         <i class="fas fa-eye"></i>
