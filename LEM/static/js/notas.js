@@ -199,7 +199,7 @@
             const studentsTableBody = document.querySelector('#students-table tbody');
             studentsTableBody.innerHTML = '';
 
-            // Ajustar el orden de los grados, colocando primero III, II, I, luego los grados del 1° al 6°
+            // Ajustar el orden de los grados, colocando primero III, II, I, luego los grados del 1° al 6° grado
             const gradeOrder = ['III', 'II', 'I', '1°', '2°', '3°', '4°', '5°', '6°'];
 
             // Función para ordenar grados y secciones
