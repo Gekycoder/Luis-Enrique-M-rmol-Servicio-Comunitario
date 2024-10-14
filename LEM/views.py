@@ -370,7 +370,7 @@ def vista_constancia(request, estudiante_id):
         rol_usuario = "Anónimo"
 
     # Enviar el correo de notificación
-    enviar_correo_constancia(nombre_usuario, rol_usuario, pdf, "Constancia de Estudio")
+    #enviar_correo_constancia(nombre_usuario, rol_usuario, pdf, "Constancia de Estudio")
 
     return response
 
@@ -391,7 +391,7 @@ def vista_constancia_asistencia(request, estudiante_id):
         rol_usuario = "Anónimo"
 
     # Enviar el correo de notificación
-    enviar_correo_constancia(nombre_usuario, rol_usuario, pdf, "Constancia de Asistencia")
+    #enviar_correo_constancia(nombre_usuario, rol_usuario, pdf, "Constancia de Asistencia")
 
     return response
 
@@ -412,7 +412,7 @@ def vista_constancia_inscripcion(request, estudiante_id):
         rol_usuario = "Anónimo"
 
     # Enviar el correo de notificación
-    enviar_correo_constancia(nombre_usuario, rol_usuario, pdf, "Constancia de Inscripción")
+    #enviar_correo_constancia(nombre_usuario, rol_usuario, pdf, "Constancia de Inscripción")
 
     return response
 
@@ -433,7 +433,7 @@ def vista_constancia_retiro(request, estudiante_id):
         rol_usuario = "Anónimo"
 
     # Enviar el correo de notificación
-    enviar_correo_constancia(nombre_usuario, rol_usuario, pdf, "Constancia de Retiro")
+    #enviar_correo_constancia(nombre_usuario, rol_usuario, pdf, "Constancia de Retiro")
 
     return response
 
