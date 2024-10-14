@@ -1070,35 +1070,35 @@ def enviar_email_notificacion(usuario, accion, tarea=None, contrasena=None):
 
 
 
-def enviar_correo_constancia(nombre_usuario, rol_usuario, pdf, tipo_constancia):
-    try:
-        asunto = f"Notificación de Descarga de {tipo_constancia}"
-        # Renderizar la plantilla HTML
-        mensaje_html = render_to_string('emails/alerta_descarga_constancia.html', {
-            'nombre_usuario': nombre_usuario,
-            'rol_usuario': rol_usuario,
-            'tipo_constancia': tipo_constancia,
-        })
+# def enviar_correo_constancia(nombre_usuario, rol_usuario, pdf, tipo_constancia):
+#     try:
+#         asunto = f"Notificación de Descarga de {tipo_constancia}"
+#         # Renderizar la plantilla HTML
+#         mensaje_html = render_to_string('emails/alerta_descarga_constancia.html', {
+#             'nombre_usuario': nombre_usuario,
+#             'rol_usuario': rol_usuario,
+#             'tipo_constancia': tipo_constancia,
+#         })
 
-        email_desde = settings.DEFAULT_FROM_EMAIL
+#         email_desde = settings.DEFAULT_FROM_EMAIL
 
-        # Obtener los correos electrónicos de usuarios con roles 'Director' y 'Subdirectora'
-        destinatarios = Usuario.objects.filter(rol__in=['Director', 'Subdirectora']).values_list('correo', flat=True)
+#         # Obtener los correos electrónicos de usuarios con roles 'Director' y 'Subdirectora'
+#         destinatarios = Usuario.objects.filter(rol__in=['Director', 'Subdirectora']).values_list('correo', flat=True)
 
-        if not destinatarios:
-            logger.warning("No se encontraron usuarios con rol de Director o Subdirectora para enviar el correo.")
-            return
+#         if not destinatarios:
+#             logger.warning("No se encontraron usuarios con rol de Director o Subdirectora para enviar el correo.")
+#             return
 
-        logger.info(f"Enviando correo a: {', '.join(destinatarios)}")
+#         logger.info(f"Enviando correo a: {', '.join(destinatarios)}")
 
-        email = EmailMultiAlternatives(asunto, mensaje_html, email_desde, destinatarios)
-        email.attach_alternative(mensaje_html, "text/html")
+#         email = EmailMultiAlternatives(asunto, mensaje_html, email_desde, destinatarios)
+#         email.attach_alternative(mensaje_html, "text/html")
 
-        # Adjuntar el archivo PDF descargado
-        email.attach(f"{tipo_constancia}.pdf", pdf, 'application/pdf')
+#         # Adjuntar el archivo PDF descargado
+#         email.attach(f"{tipo_constancia}.pdf", pdf, 'application/pdf')
 
-        email.send()
-        logger.info("Correo de notificación de descarga enviado exitosamente")
-    except Exception as e:
-        logger.error(f"Error al enviar el correo de notificación: {str(e)}")
+#         email.send()
+#         logger.info("Correo de notificación de descarga enviado exitosamente")
+#     except Exception as e:
+#         logger.error(f"Error al enviar el correo de notificación: {str(e)}")
 
