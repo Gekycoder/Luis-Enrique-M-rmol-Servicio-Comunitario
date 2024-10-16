@@ -54,7 +54,7 @@ class Estudiante(models.Model):
         db_table = 'lem_estudiantes'  # El nombre de la tabla tal como aparece en tu base de datos
 
     def __str__(self):
-        return self.apellidos_nombres
+        return self.apellidos_nombres 
     
 class PromocionSolicitud(models.Model):
     estudiante = models.ForeignKey(Estudiante, on_delete=models.CASCADE)
@@ -63,6 +63,9 @@ class PromocionSolicitud(models.Model):
     aprobado = models.BooleanField(default=False)
     revisado = models.BooleanField(default=False)
     comentarios = models.TextField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'lem_promocionsolicitud'  # Asegura que Django busque esta tabla exacta
 
     def __str__(self):
         return f"Solicitud de {self.estudiante} por {self.docente}"

@@ -667,19 +667,52 @@
                             <input type="number" name="edad" placeholder="Edad" required>
                             <input type="text" name="lugar_nac" placeholder="Lugar de Nacimiento" required>
                             <input type="date" name="fecha_nac" placeholder="Fecha de Nacimiento (YYYY-MM-DD)" required>
-                            <input type="number" name="talla" placeholder="Talla (cm)" min="1" step="0.01" required>
-                            <input type="number" name="peso" placeholder="Peso (kg)" min="1" step="0.01" required>
-                            <input type="number" name="talla_camisa" placeholder="Talla de Camisa" min="1" step="1" required>
-                            <input type="number" name="talla_pantalon" placeholder="Talla de Pantalón" min="1" step="1" required>
-                            <input type="number" name="talla_zapatos" placeholder="Talla de Zapatos" min="1" step="1" required>
+                            <input type="text" name="talla" list="talla_options" placeholder="Estatura (cm)" min="1" step="0.01" required>
+                            <datalist id="talla_options">
+                                <option value="S/N">
+                            </datalist>
+                            <input type="text" name="peso" list="peso_options" placeholder="Peso (kg)" min="1" step="0.01" required>
+                            <datalist id="peso_options">
+                                <option value="S/N">
+                            </datalist>
+                            <input type="text" name="talla_camisa" list="talla_camisa_options" placeholder="Talla de Camisa" pattern="[0-9]+(\.[0-9]+)?|[a-zA-Z]+|S/N" title="Ingrese un número o una letra (0.00, S, M, L, etc.)" required>
+                            <datalist id="talla_camisa_options">
+                                <option value="S/N">
+                            </datalist>
+                            <input type="text" name="talla_pantalon" list="talla_pantalon_options" placeholder="Talla de Pantalón" min="1" step="1" required>
+                            <datalist id="talla_pantalon_options">
+                                <option value="S/N">
+                            </datalist>
+                            <input type="text" name="talla_zapatos" list="talla_zapatos_options" placeholder="Talla de Zapatos" min="1" step="1" required>
+                            <datalist id="talla_zapatos_options">
+                                <option value="S/N">
+                            </datalist>
                             <input type="text" name="representante" placeholder="Representante" required>
                             <input type="text" name="ci_representante" placeholder="Cédula del Representante" required>
-                            <input type="text" name="direccion" placeholder="Dirección" required>
-                            <input type="text" name="tlf" placeholder="Teléfono" required>
-                            <input type="text" name="nombre_apellido_persona_autorizada_para_retirar_estudiante" placeholder="Nombre de Persona Autorizada" required>
-                            <input type="text" name="ci_persona_autorizada" placeholder="Cédula de Persona Autorizada" required>
-                            <input type="text" name="tlf_persona_autorizada" placeholder="Teléfono de Persona Autorizada" required>
-                            <input type="text" name="parentezco_persona_autorizada" placeholder="Parentesco de Persona Autorizada" required>
+                            <input type="text" name="direccion" list="direccion_options" placeholder="Dirección" required>
+                            <datalist id="direccion_options">
+                                <option value="S/N">
+                            </datalist>
+                            <input type="text" name="tlf" list="tlf_options" placeholder="Teléfono" required>
+                            <datalist id="tlf_options">
+                                <option value="S/N">
+                            </datalist>
+                            <input type="text" name="nombre_apellido_persona_autorizada_para_retirar_estudiante" list="nombre_apellido_persona_autorizada_para_retirar_estudiante_options" placeholder="Nombre de Persona Autorizada" required>
+                            <datalist id="nombre_apellido_persona_autorizada_para_retirar_estudiante_options">
+                                <option value="S/N">
+                            </datalist>
+                            <input type="text" name="ci_persona_autorizada" list="ci_persona_autorizada_options" placeholder="Cédula de Persona Autorizada" required>
+                            <datalist id="ci_persona_autorizada_options">
+                                <option value="S/N">
+                            </datalist>
+                            <input type="text" name="tlf_persona_autorizada" list="tlf_persona_autorizada_options" placeholder="Teléfono de Persona Autorizada" required>
+                            <datalist id="tlf_persona_autorizada_options">
+                                <option value="S/N">
+                            </datalist>
+                            <input type="text" name="parentezco_persona_autorizada" list="parentezco_persona_autorizada_options" placeholder="Parentesco de Persona Autorizada" required>
+                            <datalist id="parentezco_persona_autorizada_options">
+                                <option value="S/N">
+                            </datalist>
                             <button type="submit">Agregar</button>
                         </form>
                     </div>

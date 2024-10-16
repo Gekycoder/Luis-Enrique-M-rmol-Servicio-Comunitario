@@ -877,6 +877,44 @@ def agregar_estudiante(request):
         tlf_persona_autorizada = request.POST.get('tlf_persona_autorizada')
         parentezco_persona_autorizada = request.POST.get('parentezco_persona_autorizada')
         
+        campos_con_sn = [
+            'talla', 
+            'peso', 
+            'talla_camisa', 
+            'talla_pantalon', 
+            'talla_zapatos', 
+            'direccion', 
+            'tlf', 
+            'nombre_apellido_persona_autorizada_para_retirar_estudiante', 
+            'ci_persona_autorizada', 
+            'tlf_persona_autorizada', 
+            'parentezco_persona_autorizada'
+        ]
+
+        # Mostrar los valores antes de la conversión
+        print("Valores originales de los campos:")
+        for campo in campos_con_sn:
+            print(f"{campo}: {locals().get(campo)}")
+
+        # Convertir valores 'S/N' y vacíos en None
+        talla = None if talla == 'S/N' else talla
+        peso = None if peso == 'S/N' else peso
+        talla_camisa = None if talla_camisa == 'S/N' else talla_camisa
+        talla_pantalon = None if talla_pantalon == 'S/N' else talla_pantalon
+        talla_zapatos = None if talla_zapatos == 'S/N' else talla_zapatos
+        direccion = None if direccion == 'S/N' else direccion
+        tlf = None if tlf == 'S/N' else tlf
+        nombre_apellido_persona_autorizada_para_retirar_estudiante = None if nombre_apellido_persona_autorizada_para_retirar_estudiante == 'S/N' else nombre_apellido_persona_autorizada_para_retirar_estudiante
+        ci_persona_autorizada = None if ci_persona_autorizada == 'S/N' else ci_persona_autorizada
+        tlf_persona_autorizada = None if tlf_persona_autorizada == 'S/N' else tlf_persona_autorizada
+        parentezco_persona_autorizada = None if parentezco_persona_autorizada == 'S/N' else parentezco_persona_autorizada
+
+        # Mostrar los valores después de la conversión
+        print("Valores después de la conversión:")
+        for campo in campos_con_sn:
+            print(f"{campo}: {locals().get(campo)}")
+
+
         try:
             # Crear el nuevo estudiante
             nuevo_estudiante = Estudiante(
