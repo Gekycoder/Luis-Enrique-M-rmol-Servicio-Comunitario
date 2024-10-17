@@ -225,12 +225,12 @@ if (document.getElementById('editUserForm')) {
             'I': ['U'],
             'II': ['U'],
             'III': ['A', 'B'],
-            '1°': ['A', 'B'],
-            '2°': ['A', 'B'],
-            '3°': ['A', 'B'],
-            '4°': ['A', 'B'],
-            '5°': ['A', 'B'],
-            '6°': ['A', 'B']
+            'IV': ['A', 'B'],
+            'V': ['A', 'B'],
+            'VI': ['A', 'B'],
+            'VII': ['A', 'B'],
+            'VIII': ['A', 'B'],
+            'IX': ['A', 'B']
         };
 
         gradoSelect.addEventListener('change', function() {

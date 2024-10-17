@@ -9,7 +9,14 @@ locale.setlocale(locale.LC_TIME, 'es_ES.utf8')  # Establece la configuración re
 
 
 # Imaginando que tienes una función que te devuelve la instancia del director basado en tu lógica de negocio
-
+grade_mapping = {
+    'IV': '1°',
+    'V': '2°',
+    'VI': '3°',
+    'VII': '4°',
+    'VIII': '5°',
+    'IX': '6°',
+}
 
 
 def constancia_estudio(estudiante_id):
@@ -27,7 +34,7 @@ def constancia_estudio(estudiante_id):
     contexto = {
         'estudiante_nombre': estudiante.apellidos_nombres,
         'estudiante_ci': estudiante.ci,
-        'estudiante_grado': estudiante.grado,
+        'estudiante_grado': grade_mapping.get(estudiante.grado, estudiante.grado),
         'estudiante_seccion': estudiante.seccion,
         'director_nombre': f"{director.nombres} {director.apellidos}",
         'dia': hoy.day,
@@ -62,7 +69,7 @@ def constancia_asistencia(estudiante_id):
         'representante_cedula': estudiante.ci_representante,
         'estudiante_nombre': estudiante.apellidos_nombres,
         'estudiante_ci': estudiante.ci,
-        'estudiante_grado': estudiante.grado,
+        'estudiante_grado': grade_mapping.get(estudiante.grado, estudiante.grado),
         'estudiante_seccion': estudiante.seccion,
         'director_nombre': f"{director.nombres} {director.apellidos}",
         'dia': hoy.day,
@@ -95,7 +102,7 @@ def constancia_inscripcion(estudiante_id):
     contexto = {
         'estudiante_nombre': estudiante.apellidos_nombres,
         'estudiante_ci': estudiante.ci,
-        'estudiante_grado': estudiante.grado,
+        'estudiante_grado': grade_mapping.get(estudiante.grado, estudiante.grado),
         'estudiante_seccion': estudiante.seccion,
         'director_nombre': f"{director.nombres} {director.apellidos}",
         'dia': hoy.day,
@@ -131,7 +138,7 @@ def constancia_retiro(estudiante_id):
         'representante_cedula': estudiante.ci_representante,
         'estudiante_nombre': estudiante.apellidos_nombres,
         'estudiante_ci': estudiante.ci,
-        'estudiante_grado': estudiante.grado,
+        'estudiante_grado': grade_mapping.get(estudiante.grado, estudiante.grado),
         'estudiante_seccion': estudiante.seccion,
         'director_nombre': f"{director.nombres} {director.apellidos}",
         'dia': hoy.day,

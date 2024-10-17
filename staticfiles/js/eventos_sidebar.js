@@ -127,6 +127,7 @@ if (document.getElementById('editUserForm')) {
                     document.getElementById('userContrasena').value = data.usuario.contrasena || '';
                     document.getElementById('userCorreo').value = data.usuario.correo || '';
                     document.getElementById('userTelefonos').value = data.usuario.telefonos || '';
+                    document.getElementById('userFechaNac').value = data.usuario.fecha_nac || ''; // Agregar la fecha de nacimiento
                     document.getElementById('userDireccion').value = data.usuario.direccion || '';
                     document.getElementById('userRol').value = data.usuario.rol || '';
                     
@@ -224,12 +225,12 @@ if (document.getElementById('editUserForm')) {
             'I': ['U'],
             'II': ['U'],
             'III': ['A', 'B'],
-            '1°': ['A', 'B'],
-            '2°': ['A', 'B'],
-            '3°': ['A', 'B'],
-            '4°': ['A', 'B'],
-            '5°': ['A', 'B'],
-            '6°': ['A', 'B']
+            'IV': ['A', 'B'],
+            'V': ['A', 'B'],
+            'VI': ['A', 'B'],
+            'VII': ['A', 'B'],
+            'VIII': ['A', 'B'],
+            'IX': ['A', 'B']
         };
 
         gradoSelect.addEventListener('change', function() {
@@ -338,10 +339,19 @@ if (document.getElementById('editStudentForm')) {
                     document.getElementById('studentEdad').value = data.estudiante.edad || '';
                     document.getElementById('studentLugarNac').value = data.estudiante.lugar_nac || '';
                     document.getElementById('studentFechaNac').value = data.estudiante.fecha_nac || '';
+                    document.getElementById('studentTalla').value = data.estudiante.talla || '';
+                    document.getElementById('studentPeso').value = data.estudiante.peso || '';
+                    document.getElementById('studentTallaCamisa').value = data.estudiante.talla_camisa || '';
+                    document.getElementById('studentTallaPantalon').value = data.estudiante.talla_pantalon || '';
+                    document.getElementById('studentTallaZapatos').value = data.estudiante.talla_zapatos || '';
                     document.getElementById('studentRepresentante').value = data.estudiante.representante || '';
                     document.getElementById('studentCIRepresentante').value = data.estudiante.ci_representante || '';
                     document.getElementById('studentDireccion').value = data.estudiante.direccion || '';
                     document.getElementById('studentTlf').value = data.estudiante.tlf || '';
+                    document.getElementById('studentNombrePersonaAutorizada').value = data.estudiante.nombre_apellido_persona_autorizada_para_retirar_estudiante || '';
+                    document.getElementById('studentCIPersonaAutorizada').value = data.estudiante.ci_persona_autorizada || '';
+                    document.getElementById('studentTlfPersonaAutorizada').value = data.estudiante.tlf_persona_autorizada || '';
+                    document.getElementById('studentParentezcoPersonaAutorizada').value = data.estudiante.parentezco_persona_autorizada || '';
                 } else {
                     alert('Estudiante no encontrado');
                     limpiarCamposEstudiante();

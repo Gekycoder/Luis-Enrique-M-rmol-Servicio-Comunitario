@@ -46,8 +46,18 @@ function populateTeacherTable(docentes) {
     // Limpiar la tabla antes de poblarla
     teacherTableBody.innerHTML = '';
 
-    const grados = ['I', 'II', 'III', '1°', '2°', '3°', '4°', '5°', '6°'];
+    const grados = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX'];
     const secciones = ['A', 'B', 'U'];
+
+    // **Definir el mapeo de grados**
+    const gradeMapping = {
+        'IV': '1º',
+        'V': '2º',
+        'VI': '3º',
+        'VII': '4º',
+        'VIII': '5º',
+        'IX': '6º',
+    };
 
     // **Agregar filas con los datos de los docentes**
     docentes.forEach(teacher => {
@@ -62,7 +72,12 @@ function populateTeacherTable(docentes) {
             <td>
                 <select class="grade-select" data-docente-id="${teacher.id}">
                     <option value="">Seleccione un grado</option>
-                    ${grados.map(grado => `<option value="${grado}" ${grado === selectedGrade ? 'selected' : ''}>${grado}</option>`).join('')}
+                    ${grados.map(grado => {
+                        const gradoMostrado = gradeMapping[grado] || grado;
+                        const isSelected = grado === selectedGrade ? 'selected' : '';
+                        return `<option value="${grado}" ${isSelected}>${gradoMostrado}</option>`;
+                    }).join('')}
+                    
                 </select>
             </td>
             <td>

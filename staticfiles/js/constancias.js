@@ -183,6 +183,34 @@ function generateConstancia(studentId, constanciaType) {
     }
     // Redirigir a la URL correspondiente
     window.location.href = url;
+
+    // Después de generar la constancia de retiro, eliminar el estudiante
+    if (constanciaType === 'retiro') {
+        eliminarEstudiante(studentId);
+    }
+}
+
+// Función para eliminar el estudiante
+function eliminarEstudiante(studentId) {
+
+    fetch('/eliminar-estudiante/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value
+        },
+        body: JSON.stringify({ id: studentId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Estudiante eliminado exitosamente');
+            location.reload(); // Recargar la página para actualizar la tabla
+        } else {
+            alert('Error al eliminar estudiante: ' + data.error);
+        }
+    })
+    .catch(error => console.error('Error al eliminar estudiante:', error));
 }
 
 // Función para capitalizar la primera letra

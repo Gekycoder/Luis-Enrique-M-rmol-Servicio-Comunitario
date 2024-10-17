@@ -51,11 +51,20 @@ def generar_boletin_primaria_pdf(estudiante_id, datos_boletin, usuario_actual):
     # Cargar la plantilla HTML del boletín de primaria
     template = get_template('boletin_primaria.html')
     
+    grade_mapping = {
+        'IV': '1°',
+        'V': '2°',
+        'VI': '3°',
+        'VII': '4°',
+        'VIII': '5°',
+        'IX': '6°',
+    }
+
     # Preparar el contexto para el boletín de primaria
     contexto = {
         'nombre_estudiante': estudiante.apellidos_nombres,
         'ce': estudiante.ci,
-        'nivel_seccion': f"{estudiante.grado} - {estudiante.seccion}",
+        'nivel_seccion': f"{grade_mapping.get(estudiante.grado, estudiante.grado)} - {estudiante.seccion}",
         'habilidadesConsolidadas': datos_boletin['habilidadesConsolidadas'].split(';'),
         'habilidadesporConsolidar': datos_boletin['habilidadesporConsolidar'].split(';'),
         'sugerencias': datos_boletin['sugerencias'].split(';'),

@@ -190,6 +190,8 @@
                     estudiantesData = data.estudiantes; // Guardamos los datos para el filtrado
                     renderStudentsTable(estudiantesData);
                     populateGradeDropdown(estudiantesData); // Rellenar el dropdown de grados
+                    populateSectionDropdown(estudiantesData) // Rellenar el dropdown de secciones
+
                 })
                 .catch(error => console.error('Error al obtener estudiantes:', error));
         }
@@ -198,6 +200,50 @@
         function renderStudentsTable(estudiantes) {
             const studentsTableBody = document.querySelector('#students-table tbody');
             studentsTableBody.innerHTML = '';
+
+            // Ajustar el orden de los grados, colocando primero III, II, I, luego los grados del IV al IX
+            // const gradeOrder = ['I', 'II', 'III', "IV", "V", "VI", "VII", "VIII", "IX"];
+
+            // // Función para normalizar los grados (elimina espacios, hace que coincidan los formatos)
+            // function normalizeGrade(grade) {
+            //     return grade ? grade.trim().replace(/\s+/g, '') : '';
+            // }
+
+            // // Función para ordenar grados, secciones y apellidos
+            // estudiantes.sort((a, b) => {
+            //     // Normalizar los grados
+            //     const gradeA = normalizeGrade(a.grado);
+            //     const gradeB = normalizeGrade(b.grado);
+
+            //     // Obtener los índices de los grados en el array 'gradeOrder'
+            //     const gradeIndexA = gradeOrder.includes(gradeA) ? gradeOrder.indexOf(gradeA) : gradeOrder.length;
+            //     const gradeIndexB = gradeOrder.includes(gradeB) ? gradeOrder.indexOf(gradeB) : gradeOrder.length;
+
+            //     // Comparar grados
+            //     const gradeComparison = gradeIndexA - gradeIndexB;
+
+            //     // Si los grados son iguales, compararemos las secciones
+            //     if (gradeComparison === 0) {
+            //         const sectionOrder = ['U', 'A', 'B'];
+            //         const sectionA = a.seccion && sectionOrder.includes(a.seccion) ? sectionOrder.indexOf(a.seccion) : sectionOrder.length;
+            //         const sectionB = b.seccion && sectionOrder.includes(b.seccion) ? sectionOrder.indexOf(b.seccion) : sectionOrder.length;
+
+            //         const sectionComparison = sectionA - sectionB;
+
+            //         // Si también las secciones son iguales, ordenamos alfabéticamente por el campo apellidos_nombres
+            //         if (sectionComparison === 0) {
+            //             return a.apellidos_nombres.localeCompare(b.apellidos_nombres);
+            //         }
+
+            //         return sectionComparison;
+            //     }
+
+            //     return gradeComparison;
+            // });
+
+            
+
+
 
             estudiantes.forEach(estudiante => {
                 const row = document.createElement('tr');
@@ -221,17 +267,26 @@
                 let rowContent = `
                 <td>${estudiante.id}</td>
                 <td>${estudiante.ci}</td>
-                <td>${escapedName}</td>
+                <td>${estudiante.apellidos_nombres}</td>
                 <td>${estudiante.grado}</td>
                 <td>${estudiante.seccion}</td>
                 <td>${estudiante.sexo}</td>
                 <td>${estudiante.edad}</td>
                 <td>${estudiante.lugar_nac}</td>
-                <td>${estudiante.fecha_nac}</td>
+                <td>${estudiante.fecha_nac || ''}</td>
+                <td>${estudiante.talla || ''}</td>
+                <td>${estudiante.peso || ''}</td>
+                <td>${estudiante.talla_camisa || ''}</td>
+                <td>${estudiante.talla_pantalon || ''}</td>
+                <td>${estudiante.talla_zapatos || ''}</td>
                 <td>${estudiante.representante}</td>
                 <td>${estudiante.ci_representante}</td>
-                <td>${estudiante.direccion}</td>
-                <td>${estudiante.tlf}</td>
+                <td>${estudiante.direccion || ''}</td>
+                <td>${estudiante.tlf || ''}</td>
+                <td>${estudiante.nombre_apellido_persona_autorizada_para_retirar_estudiante || ''}</td>
+                <td>${estudiante.ci_persona_autorizada || ''}</td>
+                <td>${estudiante.tlf_persona_autorizada || ''}</td>
+                <td>${estudiante.parentezco_persona_autorizada || ''}</td>
                 <td>
                     <button class="ver-notas" data-id="${estudiante.id}" data-name="${escapedName}">
                         <i class="fas fa-eye"></i>
@@ -273,6 +328,7 @@
         function setupSearchAndFilters() {
             const searchInput = document.getElementById('students-search');
             const gradeDropdown = document.getElementById('filter-grade');
+            const sectionDropdown = document.getElementById('filter-section');
             let searchType = 'nombre';
 
             // Configuración del dropdown de grado
@@ -281,33 +337,55 @@
                 filterAndRenderStudents(); // Filtrar estudiantes por nombre y grado
             });
 
+            // Configuración del dropdown de sección
+            sectionDropdown.addEventListener('change', function() {
+                selectedSection = sectionDropdown.value;
+                filterAndRenderStudents(); // Filtrar estudiantes por nombre, grado y sección
+            });
+
             searchInput.addEventListener('input', function() {
                 filterAndRenderStudents(); // Filtrar estudiantes por nombre y grado
             });
         }
 
-        // Función para filtrar y renderizar los estudiantes según el grado y nombre
+        // Función para filtrar y renderizar los estudiantes según el grado, sección y nombre
         function filterAndRenderStudents() {
             const searchInput = document.getElementById('students-search').value.toLowerCase();
             let filteredStudents = estudiantesData;
 
-            // Filtrar por grado si se ha seleccionado uno
-            if (selectedGrade) {
-                filteredStudents = filteredStudents.filter(estudiante =>
-                    estudiante.grado.toLowerCase() === selectedGrade.toLowerCase()
-                );
-            }
-
-            // Filtrar por nombre
+            // Filtrar por nombre siempre, independientemente de los demás filtros
             if (searchInput) {
                 filteredStudents = filteredStudents.filter(estudiante =>
                     estudiante.apellidos_nombres.toLowerCase().includes(searchInput)
                 );
             }
 
+            // Verificar si se ha seleccionado un grado
+            const gradeDropdown = document.getElementById('filter-grade');
+            selectedGrade = gradeDropdown.value || '';  // Si no se selecciona nada, se toma como vacío
+
+            // Filtrar por grado si se ha seleccionado uno (excepto si está en "Todos los grados")
+            if (selectedGrade !== '') {
+                filteredStudents = filteredStudents.filter(estudiante =>
+                    estudiante.grado.toLowerCase() === selectedGrade.toLowerCase()
+                );
+            }
+
+            // Verificar si se ha seleccionado una sección
+            const sectionDropdown = document.getElementById('filter-section');
+            selectedSection = sectionDropdown.value || '';  // Si no se selecciona nada, se toma como vacío
+
+            // Filtrar por sección si se ha seleccionado una (excepto si está en "Todas las secciones")
+            if (selectedSection !== '') {
+                filteredStudents = filteredStudents.filter(estudiante =>
+                    estudiante.seccion.toLowerCase() === selectedSection.toLowerCase()
+                );
+            }
+
             // Renderizar los estudiantes filtrados
             renderStudentsTable(filteredStudents);
         }
+
 
         // Función para llenar el dropdown con los grados disponibles
         function populateGradeDropdown(estudiantes) {
@@ -322,6 +400,21 @@
                 gradeDropdown.appendChild(option);
             });
         }
+
+        // Función para llenar el dropdown con las secciones disponibles
+        function populateSectionDropdown(estudiantes) {
+            const sectionDropdown = document.getElementById('filter-section');
+            const uniqueSections = [...new Set(estudiantes.map(estudiante => estudiante.seccion))]; // Secciones únicas
+            sectionDropdown.innerHTML = '<option value="">Todas las Secciones</option>'; // Opción por defecto
+
+            uniqueSections.forEach(seccion => {
+                const option = document.createElement('option');
+                option.value = seccion;
+                option.textContent = seccion;
+                sectionDropdown.appendChild(option);
+            });
+        }
+
 
         // Función para configurar los eventos de los botones en la tabla
         function setupEventListeners() {

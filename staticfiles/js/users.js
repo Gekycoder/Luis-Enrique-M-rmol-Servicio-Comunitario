@@ -52,9 +52,9 @@ function updateUserTable(usuarios) {
             <td>${usuario.apellidos}</td>
             <td>${usuario.cedula}</td>
             <td>${usuario.usuario}</td>
-            <td>${usuario.contrasena}</td>
             <td>${usuario.correo}</td>
             <td>${usuario.telefonos}</td>
+            <td>${usuario.fecha_nac || ''}</td>
             <td>${usuario.direccion}</td>
             <td>${usuario.rol}</td>
         `;

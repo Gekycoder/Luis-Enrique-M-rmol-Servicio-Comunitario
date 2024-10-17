@@ -115,7 +115,7 @@ DATABASES = {
         'USER': 'AdministradorLEM',
         'PASSWORD': 'Lem23$trong!',
         'HOST': 'localhost',  # O la IP del servidor MySQL si es remoto
-    #    'HOST': '51.81.26.29',  # O la IP del servidor MySQL si es remoto
+    #   'HOST': '51.81.26.29',  # O la IP del servidor MySQL si es remoto
         'PORT': '3306',  # El puerto por defecto de MySQL
     }
 }

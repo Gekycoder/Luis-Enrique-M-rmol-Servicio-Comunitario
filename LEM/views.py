@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-from django.db.models import Q, OuterRef, Subquery
+from django.db.models import Q, OuterRef, Subquery, Case, When, IntegerField, Value
 from .models import Usuario, Estudiante, Tarea, PromocionSolicitud
 from django.http import HttpResponse
 from django.contrib.auth.hashers import make_password, check_password
@@ -322,9 +322,33 @@ def get_estudiantes(request):
     user_data = request.session.get('user_data')
     user = Usuario.objects.get(id=user_data['user_id'])
 
+    # Diccionario de mapeo
+    grade_mapping = {
+        'IV': '1º',
+        'V': '2º',
+        'VI': '3º',
+        'VII': '4º',
+        'VIII': '5º',
+        'IX': '6º',
+    }
+
     if user.rol in ['Subdirectora', 'Secretaria', 'Director', 'Coordinadora', 'Administrador', 'Docente Folklore', 'Docente Educ. Fisica', 'Docente C.B.I.T']:
         # Estos roles ven a todos los estudiantes
-        estudiantes = Estudiante.objects.all().select_related('docente').values(
+        estudiantes = Estudiante.objects.annotate(
+        grado_order=Case(
+            When(grado='I', then=Value(1)),
+            When(grado='II', then=Value(2)),
+            When(grado='III', then=Value(3)),
+            When(grado='IV', then=Value(4)),
+            When(grado='V', then=Value(5)),
+            When(grado='VI', then=Value(6)),
+            When(grado='VII', then=Value(7)),
+            When(grado='VIII', then=Value(8)),
+            When(grado='IX', then=Value(9)),
+            default=Value(10),
+            output_field=IntegerField(),
+        )
+    ).order_by('grado_order', 'seccion', 'apellidos_nombres').select_related('docente').values(
             'id', 'ci', 'apellidos_nombres', 'grado', 'seccion', 'sexo', 'edad',
             'lugar_nac', 'fecha_nac', 'talla', 'peso', 'talla_camisa', 'talla_pantalon', 'talla_zapatos',
             'representante', 'ci_representante', 'direccion', 'tlf',
@@ -347,7 +371,15 @@ def get_estudiantes(request):
             'docente_id', 'docente2_id', 'docente3_id'
         )
 
-    return JsonResponse({'estudiantes': list(estudiantes)})
+    # Convertimos el queryset en una lista de diccionarios
+    estudiantes_list = list(estudiantes)
+
+    # Aplicamos el mapeo a cada estudiante
+    for estudiante in estudiantes_list:
+        grado_original = estudiante['grado']
+        estudiante['grado'] = grade_mapping.get(grado_original, grado_original)
+
+    return JsonResponse({'estudiantes': estudiantes_list})
 
 
 
@@ -431,6 +463,14 @@ def vista_constancia_retiro(request, estudiante_id):
     else:
         nombre_usuario = "Usuario Anónimo"
         rol_usuario = "Anónimo"
+
+    try:
+        estudiante = Estudiante.objects.get(id=estudiante_id)
+        estudiante.delete()
+    except Estudiante.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Estudiante no encontrado'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
 
     # Enviar el correo de notificación
     #enviar_correo_constancia(nombre_usuario, rol_usuario, pdf, "Constancia de Retiro")
@@ -710,7 +750,7 @@ def asignar_docente(request):
             # Definir qué grados y secciones permiten hasta 3 docentes
             grados_secciones_3_docentes = [
                 ('I', 'U'), ('II', 'U'), ('III', 'A'), ('III', 'B'),
-                ('1°', 'A'), ('1°', 'B')
+                ('IV', 'A'), ('IV', 'B')
             ]
 
             # Verificación del número de docentes permitidos según el grado y sección
@@ -809,7 +849,7 @@ def registrar_notas(request, estudiante_id):
 
 
 def siguiente_grado(grado_actual):
-    grados = ['I', 'II', 'III', '1°', '2°', '3°', '4°', '5°', '6°']
+    grados = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX']
     grado_actual = grado_actual.strip()  # Eliminar espacios en blanco
     if grado_actual not in grados:
         print(f"El grado {grado_actual} no se encuentra en la lista de grados.")
@@ -896,18 +936,22 @@ def agregar_estudiante(request):
         for campo in campos_con_sn:
             print(f"{campo}: {locals().get(campo)}")
 
-        # Convertir valores 'S/N' y vacíos en None
-        talla = None if talla == 'S/N' else talla
-        peso = None if peso == 'S/N' else peso
-        talla_camisa = None if talla_camisa == 'S/N' else talla_camisa
-        talla_pantalon = None if talla_pantalon == 'S/N' else talla_pantalon
-        talla_zapatos = None if talla_zapatos == 'S/N' else talla_zapatos
-        direccion = None if direccion == 'S/N' else direccion
-        tlf = None if tlf == 'S/N' else tlf
-        nombre_apellido_persona_autorizada_para_retirar_estudiante = None if nombre_apellido_persona_autorizada_para_retirar_estudiante == 'S/N' else nombre_apellido_persona_autorizada_para_retirar_estudiante
-        ci_persona_autorizada = None if ci_persona_autorizada == 'S/N' else ci_persona_autorizada
-        tlf_persona_autorizada = None if tlf_persona_autorizada == 'S/N' else tlf_persona_autorizada
-        parentezco_persona_autorizada = None if parentezco_persona_autorizada == 'S/N' else parentezco_persona_autorizada
+        # Actualizar los campos vacíos o con 'S/N' según sea numérico o de texto
+        talla = -1 if talla == 'S/N' or not talla else talla
+        peso = -1 if peso == 'S/N' or not peso else peso
+        talla_camisa = 'S/N' if talla_camisa == 'S/N' or not talla_camisa else talla_camisa
+        talla_pantalon = 'S/N' if talla_pantalon == 'S/N' or not talla_pantalon else talla_pantalon
+        talla_zapatos = -1 if talla_zapatos == 'S/N' or not talla_zapatos else talla_zapatos
+        lugar_nac = 'S/N' if not lugar_nac else lugar_nac
+        fecha_nac = 'S/N' if not fecha_nac else fecha_nac
+        representante = 'S/N' if not representante else representante
+        ci_representante = 'S/N' if not ci_representante else ci_representante
+        direccion = 'S/N' if not direccion else direccion
+        tlf = 'S/N' if not tlf else tlf
+        nombre_apellido_persona_autorizada_para_retirar_estudiante = 'S/N' if not nombre_apellido_persona_autorizada_para_retirar_estudiante else nombre_apellido_persona_autorizada_para_retirar_estudiante
+        ci_persona_autorizada = 'S/N' if not ci_persona_autorizada else ci_persona_autorizada
+        tlf_persona_autorizada = 'S/N' if not tlf_persona_autorizada else tlf_persona_autorizada
+        parentezco_persona_autorizada = 'S/N' if not parentezco_persona_autorizada else parentezco_persona_autorizada
 
         # Mostrar los valores después de la conversión
         print("Valores después de la conversión:")
