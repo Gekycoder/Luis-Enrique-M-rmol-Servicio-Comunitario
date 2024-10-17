@@ -937,11 +937,11 @@ def agregar_estudiante(request):
             print(f"{campo}: {locals().get(campo)}")
 
         # Actualizar los campos vacíos o con 'S/N' según sea numérico o de texto
-        talla = -1 if talla == 'S/N' or not talla else talla
-        peso = -1 if peso == 'S/N' or not peso else peso
+        talla = 1 if talla == 'S/N' or not talla else talla
+        peso = 1 if peso == 'S/N' or not peso else peso
         talla_camisa = 'S/N' if talla_camisa == 'S/N' or not talla_camisa else talla_camisa
         talla_pantalon = 'S/N' if talla_pantalon == 'S/N' or not talla_pantalon else talla_pantalon
-        talla_zapatos = -1 if talla_zapatos == 'S/N' or not talla_zapatos else talla_zapatos
+        talla_zapatos = 1 if talla_zapatos == 'S/N' or not talla_zapatos else talla_zapatos
         lugar_nac = 'S/N' if not lugar_nac else lugar_nac
         fecha_nac = 'S/N' if not fecha_nac else fecha_nac
         representante = 'S/N' if not representante else representante
@@ -1020,6 +1020,7 @@ def modificar_estudiante(request):
         tlf_persona_autorizada = request.POST.get('tlf_persona_autorizada')
         parentezco_persona_autorizada = request.POST.get('parentezco_persona_autorizada')
         
+
         try:
             # Busca al estudiante por su ID o CI (dependiendo de cómo quieras buscarlo)
             estudiante = Estudiante.objects.get(ci=ci)
@@ -1045,6 +1046,7 @@ def modificar_estudiante(request):
             estudiante.parentezco_persona_autorizada = parentezco_persona_autorizada
             estudiante.save()
 
+            
             return JsonResponse({'success': True})
 
         except Estudiante.DoesNotExist:

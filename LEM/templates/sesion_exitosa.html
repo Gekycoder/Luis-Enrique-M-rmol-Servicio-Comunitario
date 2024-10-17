@@ -732,8 +732,28 @@
                             <input type="number" id="studentId" name="id" placeholder="ID del Estudiante" required>
                             <input type="text" id="studentCI" name="ci" placeholder="Cédula del Estudiante" required>
                             <input type="text" id="studentApellidosNombres" name="apellidos_nombres" placeholder="Apellidos y Nombres" required>
-                            <input type="text" id="studentGrado" name="grado" placeholder="Grado" required>
-                            <input type="text" id="studentSeccion" name="seccion" placeholder="Sección" required>
+                    
+                            <select id="studentGrado" name="grado" placeholder="Grado" required>
+                                <option value="" disabled selected>Grado</option>
+                                <option value="I">Nivel I</option>
+                                <option value="II">Nivel II</option>
+                                <option value="III">Nivel III</option>
+                                <option value="1º">1° Grado</option>
+                                <option value="2º">2° Grado</option>
+                                <option value="3º">3° Grado</option>
+                                <option value="4º">4° Grado</option>
+                                <option value="5º">5° Grado</option>
+                                <option value="6º">6° Grado</option>
+                            </select>
+                            
+
+                            <select id="studentSeccion" name="seccion" placeholder="Sección" required>
+                                <option value="" disabled selected>Sección</option>
+                                <option value="U">Sección U</option>
+                                <option value="A">Sección A</option>
+                                <option value="B">Sección B</option>
+                            </select>
+
                             <select id="studentSexo" name="sexo" required>
                                 <option value="" disabled selected>Seleccionar Sexo</option>
                                 <option value="M">Masculino</option>

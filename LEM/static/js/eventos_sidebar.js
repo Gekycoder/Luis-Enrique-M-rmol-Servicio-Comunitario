@@ -280,17 +280,39 @@ if (document.getElementById('editUserForm')) {
         });
     }
 
-    // **Manejo del formulario para editar estudiante**
+  // **Manejo del formulario para editar estudiante**
 if (document.getElementById('editStudentForm')) {
     const editStudentForm = document.getElementById('editStudentForm');
     const studentIdField = document.getElementById('studentId');
+
+    // **Mapeo inverso de grados**
+    const reverseGradeMapping = {
+        '1º': 'IV',
+        '2º': 'V',
+        '3º': 'VI',
+        '4º': 'VII',
+        '5º': 'VIII',
+        '6º': 'IX',
+    };
 
     // Listener para el evento 'submit' del formulario
     editStudentForm.addEventListener('submit', function(e) {
         e.preventDefault();
         console.log('Formulario de edición de estudiante enviado.');
 
+        // **Obtener los datos del formulario**
         const formData = new FormData(this);
+
+        // **Obtener el grado seleccionado (grado mapeado)**
+        const mappedGrade = formData.get('grado');
+
+        // **Convertir al grado original usando el mapeo inverso**
+        const originalGrade = reverseGradeMapping[mappedGrade] || mappedGrade;
+
+        // **Reemplazar el grado en formData con el grado original**
+        formData.set('grado', originalGrade);
+
+        // **Enviar los datos al servidor sin modificar la solicitud fetch**
         fetch('/modificar-estudiante/', {
             method: 'POST',
             body: formData,
@@ -321,6 +343,15 @@ if (document.getElementById('editStudentForm')) {
             return;
         }
 
+        const gradeMapping = {
+            'IV': '1º',
+            'V': '2º',
+            'VI': '3º',
+            'VII': '4º',
+            'VIII': '5º',
+            'IX': '6º',
+        };
+
         fetch(`/get-estudiante/${studentId}/`)
             .then(response => {
                 if (!response.ok) {
@@ -331,9 +362,17 @@ if (document.getElementById('editStudentForm')) {
             .then(data => {
                 if (data.estudiante) {
                     console.log('Datos del estudiante recibidos:', data.estudiante);
+
+                    // **Aplicar el mapeo al grado del estudiante**
+                    const originalGrade = data.estudiante.grado || '';
+                    const mappedGrade = gradeMapping[originalGrade] || originalGrade;
+
+                    // **Asignar el grado mapeado al campo 'studentGrado'**
+                    document.getElementById('studentGrado').value = mappedGrade;
+
+                    // **Asignar los demás campos como antes**
                     document.getElementById('studentCI').value = data.estudiante.ci || '';
                     document.getElementById('studentApellidosNombres').value = data.estudiante.apellidos_nombres || '';
-                    document.getElementById('studentGrado').value = data.estudiante.grado || '';
                     document.getElementById('studentSeccion').value = data.estudiante.seccion || '';
                     document.getElementById('studentSexo').value = data.estudiante.sexo || '';
                     document.getElementById('studentEdad').value = data.estudiante.edad || '';
